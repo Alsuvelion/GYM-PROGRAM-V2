@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Personal gym program and meal plan">
+<title>Gym Elevation — My Program</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f0f; color: #f0f0f0; min-height: 100vh; padding: 24px 16px 60px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: .02em; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+  /* SECTION TOGGLE */
+  .section-toggle { display: flex; gap: 8px; margin-bottom: 28px; }
+  .stab {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid #2a2a2a;
+    border-left-width: 3px;
+    background: #141414;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .stab:hover { background: #1a1a1a; color: #888; }
+
+  /* ROUTINE — green */
+  .stab[data-section="gym"]               { border-left-color: #2a5a40; }
+  .stab[data-section="gym"]:hover         { border-left-color: #4ecb8d; color: #4ecb8d; }
+  .stab[data-section="gym"].active        { background: #0d2a1c; border-color: #1a4a30; border-left-color: #4ecb8d; color: #4ecb8d; }
+
+  /* MEAL PLAN — orange */
+  .stab[data-section="meal"]              { border-left-color: #5a3a10; }
+  .stab[data-section="meal"]:hover        { border-left-color: #d4943a; color: #d4943a; }
+  .stab[data-section="meal"].active       { background: #2a1a08; border-color: #4a2e10; border-left-color: #d4943a; color: #d4943a; }
+
+  /* TRACKER — purple */
+  .stab[data-section="tracker"]           { border-left-color: #3a2a5a; }
+  .stab[data-section="tracker"]:hover     { border-left-color: #a89cf0; color: #a89cf0; }
+  .stab[data-section="tracker"].active    { background: #1a1430; border-color: #352860; border-left-color: #a89cf0; color: #a89cf0; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── COLOR CARRY-THROUGH PER SECTION ─────────────────────────────── */
+
+  /* ROUTINE (green) accents */
+  #gym .sec-label        { color: #2a6645; }
+  #gym .tabs             { margin-bottom: 18px; }
+  #gym .tab.active       { background: #0d2a1c; color: #4ecb8d; border-color: #1a6645; border-left: 3px solid #4ecb8d; }
+  #gym .tab:hover        { color: #4ecb8d; border-color: #2a5a40; }
+  #gym .schedule-bar     { margin-bottom: 20px; }
+  #gym .stats-bar        { margin-bottom: 20px; }
+  #gym .row-head         { color: #2a6645; }
+  #gym .note             { border-top-color: #1a3326; color: #3a7a55; }
+
+  /* MEAL PLAN (orange) accents */
+  #meal .meal-label      { color: #d4943a; }
+  #meal .meal-time       { color: #7a5220; }
+  #meal .divider         { background: #3a2a10; }
+  #meal > div:first-child { /* daily meals label */
+    color: #7a5220 !important;
+    border-bottom: 1px solid #3a2a10;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+  }
+
+  /* TRACKER (purple) accents */
+  #tracker .tracker-title        { color: #a89cf0; }
+  #tracker .weekday              { color: #4a3a7a; }
+  #tracker #monthSelect          { border-color: #3a2a5a; color: #a89cf0; background: #1a1430; }
+  #tracker #monthSelect:hover    { border-color: #a89cf0; }
+  #tracker .cal-day:hover        { border-color: #a89cf0; }
+  #tracker .cal-day.went         { border-color: #1a6645; background: #0d3326; }
+  #tracker .cal-day.rest         { border-color: #1a3a66; background: #0d2a4d; }
+  #tracker .cal-day.skipped      { border-color: #664d4d; background: #4d1a1a; }
+
+  /* One clean separator under the nav tabs only */
+  .section-toggle { border-bottom: 1px solid #1e1e1e; padding-bottom: 22px; margin-bottom: 24px; }
+  .stats-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat { background: #1a1a1a; border: 1px solid #262626; border-radius: 8px; padding: 8px 14px; font-size: 12px; color: #666; }
+  .stat span { color: #f0f0f0; font-weight: 600; }
+
+  /* SCHEDULE */
+  .schedule-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .day-pill { padding: 6px 13px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid #333; }
+  .day-active { background: #0d3326; color: #4ecb8d; border-color: #1a6645; }
+  .day-rest { background: #1a1a1a; color: #555; }
+
+  /* GYM TABS */
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 9px 16px; border-radius: 10px; border: 1px solid #333; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; color: #888; }
+  .tab.active { background: #1e1e1e; color: #f0f0f0; border-color: #555; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ROWS */
+  .row-head { display: grid; grid-template-columns: 1fr 62px 80px 72px; gap: 6px; padding: 4px 12px; font-size: 11px; color: #555; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .row { display: grid; grid-template-columns: 1fr 62px 80px 72px; gap: 6px; align-items: center; padding: 11px 12px; border-radius: 10px; margin-bottom: 3px; font-size: 13px; background: #1a1a1a; border: 1px solid #262626; }
+  .machine-name { font-weight: 500; color: #f0f0f0; display: flex; align-items: center; gap: 7px; }
+  .num { text-align: center; color: #ccc; }
+  .cardio-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px; margin-bottom: 6px; border-radius: 8px; background: #141414; font-size: 12px; color: #666; border-left: 2px solid #2a2a2a; }
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
+  .b-db { background: #1e1a3a; color: #a89cf0; }
+  .b-machine { background: #0d2e1f; color: #4ecb8d; }
+  .b-cardio { background: #2a1e08; color: #d4943a; }
+  .sec-label { font-size: 10px; font-weight: 700; color: #444; margin: 14px 0 5px 4px; text-transform: uppercase; letter-spacing: .08em; }
+  .note { font-size: 12px; color: #444; margin-top: 16px; padding-top: 14px; border-top: 1px solid #222; line-height: 1.6; }
+
+  /* MEAL PLAN */
+  .meal-card { background: #1a1a1a; border: 1px solid #262626; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 14px; }
+  .meal-time { font-size: 12px; font-weight: 600; color: #555; min-width: 56px; padding-top: 2px; }
+  .meal-label { font-size: 13px; font-weight: 600; color: #f0f0f0; margin-bottom: 7px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill { font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+  .p-rice { background: #2a1e08; color: #d4943a; }
+  .p-meat { background: #0d2e1f; color: #4ecb8d; }
+  .p-veg { background: #173404; color: #97C459; }
+  .p-egg { background: #1e1a3a; color: #a89cf0; }
+  .p-coffee { background: #1e1208; color: #c47c3a; }
+  .p-no { background: #1a1a1a; color: #444; border: 1px solid #2a2a2a; text-decoration: line-through; }
+  /* SNACK & FRUIT COLORS */
+  .p-banana { background: #332b00; color: #ffd700; }
+  .p-orange { background: #331a00; color: #ffa500; }
+  .p-watermelon { background: #331414; color: #ff6b6b; }
+  .p-mango { background: #332200; color: #ffcc00; }
+  .p-nuts { background: #332414; color: #e6a863; }
+  .p-siomai { background: #2b2b2b; color: #e6e6e6; }
+  .gym-card { background: #0d2e1f; border: 1px solid #1a6645; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px; }
+  .gym-time { font-size: 12px; font-weight: 600; color: #4ecb8d; min-width: 56px; }
+  .gym-label { font-size: 13px; font-weight: 700; color: #4ecb8d; }
+  .cheat-box { border: 1px solid #2a2a2a; border-radius: 10px; padding: 12px 16px; margin-top: 12px; }
+  .cheat-title { font-size: 11px; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .divider { height: 0.5px; background: #222; margin: 16px 0; }
+  .coffee-note { font-size: 12px; color: #555; background: #1a1208; border: 1px solid #2a1a08; border-radius: 8px; padding: 10px 14px; margin-top: 8px; line-height: 1.6; }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 600px) {
+    body { padding: 16px 12px 40px; font-size: 14px; }
+    h1 { font-size: 18px; }
+    .subtitle { font-size: 12px; margin-bottom: 16px; }
+    .section-toggle { gap: 4px; margin-bottom: 20px; }
+    .stab { padding: 8px 16px; font-size: 13px; }
+    .stats-bar { gap: 6px; flex-wrap: wrap; }
+    .stat { padding: 6px 10px; font-size: 11px; }
+    .schedule-bar { gap: 6px; }
+    .day-pill { padding: 4px 10px; font-size: 11px; }
+    .tabs { gap: 4px; margin-bottom: 12px; }
+    .tab { padding: 7px 12px; font-size: 12px; }
+    .row-head { grid-template-columns: 1fr 40px 58px 55px; gap: 4px; padding: 2px 8px; font-size: 10px; }
+    .row { grid-template-columns: 1fr 40px 58px 55px; gap: 4px; align-items: center; padding: 8px 8px; font-size: 12px; }
+    .machine-name { gap: 5px; }
+    .badge { font-size: 9px; padding: 1px 5px; }
+    .num { font-size: 11px; }
+    .cardio-row { padding: 5px 8px; font-size: 11px; }
+    .sec-label { margin: 10px 0 3px 2px; font-size: 9px; }
+    .note { font-size: 11px; margin-top: 12px; padding-top: 10px; }
+    .meal-card { padding: 12px 12px; margin-bottom: 6px; gap: 10px; }
+    .meal-time { min-width: 50px; font-size: 11px; }
+    .meal-label { font-size: 12px; margin-bottom: 5px; }
+    .pills { gap: 4px; flex-wrap: wrap; }
+    .pill { font-size: 11px; padding: 2px 8px; }
+    .gym-card { padding: 12px 12px; margin-bottom: 6px; gap: 10px; }
+    .gym-time { min-width: 50px; font-size: 11px; }
+    .gym-label { font-size: 12px; }
+    .cheat-box { padding: 10px 12px; margin-top: 10px; }
+    .cheat-title { font-size: 10px; margin-bottom: 6px; }
+    .divider { margin: 12px 0; }
+    .coffee-note { font-size: 11px; padding: 8px 12px; margin-top: 6px; }
+    .tracker-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .tracker-title { font-size: 13px; }
+    #monthSelect { font-size: 13px; width: 100%; max-width: none; }
+    .calendar-grid { gap: 4px; }
+    .cal-day { padding: 8px 4px; }
+    .cal-date { font-size: 12px; margin-bottom: 6px; }
+    .cal-status { font-size: 16px; }
+    .note-modal-content { width: 95%; max-width: none; padding: 16px; }
+    .note-modal-header { font-size: 13px; }
+    .note-modal-input { font-size: 12px; min-height: 60px; }
+    .note-modal-btn { font-size: 12px; padding: 6px 10px; }
+
+  }/* === ANIMATIONS === */
+  /* Smooth fade in for tabs */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section.active {
+    display: block;
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  /* Hover pop effect for pills */
+  .pill { transition: transform 0.2s ease, filter 0.2s ease; }
+  .pill:hover { transform: scale(1.08); filter: brightness(1.2); cursor: default; }
+
+  /* Pulse effect for the Gym Session card to hype you up */
+  @keyframes glowPulse {
+    0% { box-shadow: 0 0 0px #5e8e0b; }
+    30% { box-shadow: 0 0 12px #5e8e0b; }
+    50% { box-shadow: 0 0 0px #5e8e0b; }
+  }
+  .gym-card { animation: glowPulse 8s infinite; }
+
+
+  /* === TRACKER CSS === */
+  .tracker-header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .tracker-title { font-size: 14px; font-weight: 600; color: #f0f0f0; }
+  #monthSelect { background: #1e1e1e; color: #f0f0f0; border: 1px solid #333; padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: 600; outline: none; cursor: pointer; transition: all 0.2s ease; }
+  #monthSelect:hover { border-color: #555; background: #252525; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; }
+  .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 8px; }
+  .weekday { font-size: 11px; font-weight: 700; color: #555; text-align: center; text-transform: uppercase; padding: 4px 0; }
+  .cal-day { background: #151515; border: 1px solid #2a2a2a; border-radius: 8px; padding: 10px 6px; text-align: center; transition: all 0.2s ease; cursor: pointer; position: relative; }
+  .cal-day:hover { transform: translateY(-2px); border-color: #555; background: #1a1a1a; }
+  .cal-date { font-size: 13px; font-weight: 700; color: #888; margin-bottom: 8px; min-height: 18px; }
+  .cal-status { font-size: 18px; transition: all 0.3s ease; height: 24px; display: flex; align-items: center; justify-content: center; }
+  .cal-note-btn { font-size: 10px; color: #555; cursor: pointer; transition: all 0.2s; margin-top: 4px; opacity: 0; position: absolute; top: 2px; right: 2px; }
+  .cal-day:hover .cal-note-btn { opacity: 0.6; }
+  .cal-note-btn:hover { opacity: 1; color: #f0f0f0; }
+  
+  /* Status colors */
+  .cal-day.went { border-color: #1a6645; background: #0d3326; }
+  .cal-day.went .cal-date { color: #4ecb8d; }
+  .cal-day.went .cal-status { color: #4ecb8d; }
+  
+  .cal-day.rest { border-color: #1a3a66; background: #0d2a4d; }
+  .cal-day.rest .cal-date { color: #5ba8d6; }
+  .cal-day.rest .cal-status { color: #5ba8d6; }
+  
+  .cal-day.skipped { border-color: #664d4d; background: #4d1a1a; }
+  .cal-day.skipped .cal-date { color: #ff6b6b; }
+  .cal-day.skipped .cal-status { color: #ff6b6b; }
+  
+  /* Note modal */
+  .note-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 1000; align-items: center; justify-content: center; }
+  .note-modal.active { display: flex; }
+  .note-modal-content { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; }
+  .note-modal-header { font-size: 14px; font-weight: 700; color: #f0f0f0; margin-bottom: 14px; }
+  .note-modal-input { width: 100%; background: #151515; border: 1px solid #2a2a2a; border-radius: 6px; padding: 10px 12px; font-size: 13px; color: #f0f0f0; font-family: inherit; min-height: 80px; resize: vertical; margin-bottom: 12px; }
+  .note-modal-input:focus { outline: none; border-color: #555; }
+  .note-modal-buttons { display: flex; gap: 8px; }
+  .note-modal-btn { padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-save { background: #4ecb8d; color: #0d3326; }
+  .btn-save:hover { background: #6dd9a0; }
+  .btn-cancel { background: #2a2a2a; color: #f0f0f0; }
+  .btn-cancel:hover { background: #333; }
+  .btn-delete { background: #663333; color: #ff6b6b; flex: 1; text-align: center; }
+  .btn-delete:hover { background: #804040; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>GYM ELEVATION 🏋️</h1>
+<p class="subtitle">My Program + Meal Plan</p>
+
+<div class="section-toggle">
+    <button class="stab active" data-section="gym">🏋️ ROUTINE</button>
+    <button class="stab" data-section="meal">🍽️ MEAL PLAN</button>
+    <button class="stab" data-section="tracker">📅 TRACKER</button>
+  </div>
+</header>
+
+<main>
+<!-- ===== GYM SECTION ===== -->
+<section id="gym" class="section active">
+
+  <div class="stats-bar">
+    <div class="stat">Weight <span>95 kg</span></div>
+    <div class="stat">Height <span>5'6"</span></div>
+    <div class="stat">Sets <span>2–4 × 8–10 reps</span></div>
+    <div class="stat">DB Max <span>20 kg</span></div>
+  </div>
+
+  <div class="schedule-bar">
+    <span class="day-pill day-active">Tue — Legs 🦵</span>
+    <span class="day-pill day-rest">Wed — Rest</span>
+    <span class="day-pill day-active">Thu — Full Body 🔥</span>
+    <span class="day-pill day-rest">Fri — Rest</span>
+    <span class="day-pill day-active">Sat — Upper 💪</span>
+    <span class="day-pill day-rest">Sun/Mon — Rest</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-target="leg" aria-label="Tuesday Legs">🦵 Tue — Legs</button>
+    <button class="tab" data-target="full" aria-label="Thursday Full Body">🔥 Thu — Full Body</button>
+    <button class="tab" data-target="upper" aria-label="Saturday Upper">💪 Sat — Upper</button>
+  </div>
+
+  <!-- LEG DAY -->
+  <div id="leg" class="panel active">
+    <div class="row-head"><span>Exercise</span><span style="text-align:center">Sets</span><span style="text-align:center">Reps</span><span style="text-align:center">kg</span></div>
+    <div class="sec-label">machines</div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Hack Squat</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">50</span></div>
+    <div class="cardio-row">🚲 Bike — 2 min moderate <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Seated Leg Press</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">50</span></div>
+    <div class="cardio-row">🏃 Treadmill — 2 min brisk walk <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Leg Extension</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">20</span></div>
+    <div class="cardio-row">🪜 Stepmaster — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Prone Leg Curl</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">20</span></div>
+    <div class="cardio-row">🚲 Bike — 2 min moderate <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Abductor / Adductor</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">30</span></div>
+    <div class="cardio-row">🏃 Treadmill — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="sec-label">dumbbells</div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>Goblet Squat</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">20</span></div>
+    <div class="cardio-row">🪜 Stepmaster — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>Romanian Deadlift</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">15 each</span></div>
+    <div class="cardio-row">🚲 Bike — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>Reverse Lunge</span><span class="num">2–3</span><span class="num">6–10 ea</span><span class="num">10 each</span></div>
+    <div class="sec-label">core finisher</div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Ab Machine / Back Ext.</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">15</span></div>
+    <div class="note">Start at 2 sets / 8 reps if you're tired — that's still a win. Work up to 4 sets / 10 reps over time. Add 5 kg when all sets feel easy. Romanian Deadlift: hold one DB in each hand, hinge at hips, keep back flat.</div>
+  </div>
+
+  <!-- FULL BODY DAY -->
+  <div id="full" class="panel">
+    <div class="row-head"><span>Exercise</span><span style="text-align:center">Sets</span><span style="text-align:center">Reps</span><span style="text-align:center">kg</span></div>
+    <div class="sec-label">push</div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Chest Press</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">25</span></div>
+    <div class="cardio-row">🚲 Bike — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Shoulder Press</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">15</span></div>
+    <div class="cardio-row">🪜 Stepmaster — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>DB Lateral Raise</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">8 each</span></div>
+    <div class="sec-label">pull</div>
+    <div class="cardio-row" style="margin-top:4px">🏃 Treadmill — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Pulldown</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">30</span></div>
+    <div class="cardio-row">🚲 Bike — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Pulley Row</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">25</span></div>
+    <div class="cardio-row">🪜 Stepmaster — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>DB Bent Over Row</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">15 each</span></div>
+    <div class="sec-label">legs</div>
+    <div class="cardio-row" style="margin-top:4px">🏃 Treadmill — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Seated Leg Press</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">40</span></div>
+    <div class="cardio-row">🚲 Bike — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Hack Squat</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">45</span></div>
+    <div class="cardio-row">🪜 Stepmaster — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>DB Goblet Squat</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">20</span></div>
+    <div class="sec-label">core finisher</div>
+    <div class="row" style="margin-top:4px"><span class="machine-name"><span class="badge b-machine">M</span>Torso Rotation</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">10 each</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Ab Machine</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">15</span></div>
+    <div class="note">Full body day — start at 2 sets / 8 reps, push to 3 sets / 10 when you can. Legs are lighter since Tuesday already hit them. Rest 60–90 sec between sets.</div>
+  </div>
+
+  <!-- UPPER DAY -->
+  <div id="upper" class="panel">
+    <div class="row-head"><span>Exercise</span><span style="text-align:center">Sets</span><span style="text-align:center">Reps</span><span style="text-align:center">kg</span></div>
+    <div class="sec-label">chest & back</div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Chest Press</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">25</span></div>
+    <div class="cardio-row">🚲 Bike — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Pulldown</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">30</span></div>
+    <div class="cardio-row">🏃 Treadmill — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Pec Fly / Rear Deltoid</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">15</span></div>
+    <div class="cardio-row">🪜 Stepmaster — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Pulley Row</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">25</span></div>
+    <div class="cardio-row">🚲 Bike — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="sec-label">shoulders</div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Split Shoulder Press</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">10</span></div>
+    <div class="cardio-row">🏃 Treadmill — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>High Pull Low Rowing</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">20</span></div>
+    <div class="cardio-row">🪜 Stepmaster — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>DB Lateral Raise</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">8 each</span></div>
+    <div class="sec-label">arms</div>
+    <div class="cardio-row" style="margin-top:4px">🚲 Bike — 2 min <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Assist Dip Chin</span><span class="num">2–4</span><span class="num">6–10</span><span class="num">−30 assist</span></div>
+    <div class="cardio-row">🏃 Treadmill — 2 min cool down <span class="badge b-cardio">interval</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>DB Bicep Curl</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">10 each</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>DB Overhead Tricep Ext.</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">12</span></div>
+    <div class="sec-label">core finisher</div>
+    <div class="row" style="margin-top:4px"><span class="machine-name"><span class="badge b-machine">M</span>Torso Rotation</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">10 each</span></div>
+    <div class="note">Start at 2 sets / 6 reps if needed — no shame. Goal is 4 sets / 10 by end of month. Assist Dip Chin: reduce assist by 5 kg every few weeks as you get stronger. Rest 60–90 sec between sets.</div>
+  </div>
+
+</div>
+
+</section><!-- end gym section -->
+
+
+<!-- ===== MEAL SECTION ===== -->
+<div id="meal" class="section">
+
+  <div style="font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px;">Daily meals — gym at 2–3pm</div>
+
+  <div class="cheat-box" style="margin-top: 0; margin-bottom: 12px; border-color: #331414;">
+    <div class="cheat-title" style="color: #ff6b6b;">🍉 Snack & Fruit Guide (Mix & Match)</div>
+    <div class="pills">
+      <span class="pill p-banana"> 🍌 Bananas</span>
+      <span class="pill p-orange"> 🍊 Oranges</span>
+      <span class="pill p-watermelon"> 🍉 Watermelon</span>
+      <span class="pill p-mango"> 🥭 Ripe Mangoes</span>
+      <span class="pill p-nuts"> 🌰 Steamed Nuts</span>
+      <span class="pill p-siomai"> 🥟 Steamed Siomai</span>
+      <span class="pill p-no">NO Avocado</span>
+    </div>
+    <div style="font-size: 11px; color: #bbb; margin-top: 8px; line-height: 1.5;">
+      Eat these as snacks when hungry. <br><br>
+      <strong>RULES (｀⌒´メ):</strong> <br>
+      1. <strong>Nuts:</strong> Nilagang mani is good, but HIGH CALORIE. 1 small cup max! <br>
+      2. <strong>Siomai:</strong> STEAMED ONLY. Keep it to 3-4 pieces and do not drown it in chili oil/soy sauce. <br>
+      3. <strong>Avocado:</strong> Still a no. Total fat bomb, don't ruin the deficit!
+    </div>
+  </div>
+
+  <div class="cheat-box" style="margin-bottom: 12px; border-color: #2a2a4a; background: #0a0a14;">
+    <div class="cheat-title" style="color: #a89cf0;">🛌 REST DAYS (Mon, Wed, Fri, Sat)</div>
+    <div style="font-size: 12px; color: #aaa; line-height: 1.6;">
+      <strong>Morning:</strong> Same 2-rice Brunch setup. Gotta fuel up.<br>
+      <strong>Afternoon:</strong> Skip the 1pm eggs and pre-workout drinks. Just grab an Orange or Watermelon if you get hungry.<br>
+      <strong>Dinner:</strong> Keep it to light sabaw or your evening egg/cucumber combo. No gym means less calories burned!
+    </div>
+  </div>
+
+  <div class="cheat-box" style="margin-bottom: 24px; border-color: #331414; background: #1a0f0f;">
+    <div class="cheat-title" style="color: #ff6b6b;">🍔 CHEAT MEAL REMINDERS (1× A WEEK)</div>
+    <div style="font-size: 12px; color: #bbb; line-height: 1.6;">
+      <strong>Bro, it's a cheat MEAL, not a cheat DAY! (ง •̀_•́)ง</strong> Eat whatever you're craving—whether that's fast food, sweets, or heavy comfort food—but keep it to <strong>ONE sitting</strong>. Don't turn this into a 24-hour food bender!
+      <br><br>
+      <strong>General Rules:</strong> DO NOT BINGE UNTIL YOU HATE YOURSELF. (꒪ཀ꒪) If you are eating super fatty foods, <strong>PLEASE STICK TO 1 CUP OF RICE ONLY! (｀⌒´メ)</strong> I know the extra rice is calling your name, but fight the urge! Enjoy the food, don't stress about the numbers for this one meal, and get your butt right back on the regular plan the next morning! You got this! ᕙ(⇀‸↼‶)ᕗ
+    </div>
+  </div>
+
+  <div class="meal-card">
+    <div class="meal-time">9–10am</div>
+    <div>
+      <div class="meal-label">Wake up ☀️</div>
+      <div class="pills">
+        <span class="pill p-coffee">☕ black coffee</span>
+        <span class="pill p-no">no sugar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="meal-card" style="margin-top:8px">
+    <div class="meal-time">11am</div>
+    <div>
+      <div class="meal-label">Brunch — carinderia 🍽️</div>
+      <div class="pills">
+        <span class="pill p-rice">2 rice (non-negotiable)</span>
+      </div>
+      
+      <div style="font-size: 11px; font-weight: 600; color: #888; margin-top: 8px; text-transform: uppercase;">Pick 1 Meat (Protein)</div>
+      <div class="pills" style="margin-top: 4px;">
+        <span class="pill p-meat">Chicken Adobo</span>
+        <span class="pill p-meat">Grilled/Inasal</span>
+        <span class="pill p-meat">Beef Menudo</span>
+        <span class="pill p-meat">Sabaw: Sinigang/Tinola (eat meat!)</span>
+      </div>
+
+      <div style="font-size: 11px; font-weight: 600; color: #888; margin-top: 8px; text-transform: uppercase;">Pick 1 Gulay (Fiber/Fill)</div>
+      <div class="pills" style="margin-top: 4px;">
+        <span class="pill p-veg">Ginisang Monggo</span>
+        <span class="pill p-veg">Ginisang Sayote</span>
+        <span class="pill p-veg">Pinakbet (skip fat bits)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="meal-card">
+    <div class="meal-time">1pm</div>
+    <div>
+      <div class="meal-label">Pre-gym snack ⚡</div>
+      <div class="pills">
+        <span class="pill p-egg">2 🥚 boiled eggs</span>
+        <span class="pill p-banana">1 🍌 banana</span>
+        <span class="pill p-coffee">☕ black coffee</span>
+        <span class="pill p-no">Zero Sugar Monster/Energy</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gym-card" style="margin-top:8px">
+    <div class="gym-time">2–3pm</div>
+    <div class="gym-label">🏋️ GYM SESSION</div>
+  </div>
+
+  <div class="meal-card">
+    <div class="meal-time">5–6pm</div>
+    <div>
+      <div class="meal-label">Post-gym meal 💪</div>
+      <div class="pills">
+        <span class="pill p-rice">1 rice</span>
+      </div>
+       <div style="font-size: 11px; font-weight: 600; color: #888; margin-top: 8px; text-transform: uppercase;">Mix & Match (Light Protein/Veg)</div>
+      <div class="pills" style="margin-top: 4px;">
+        <span class="pill p-meat">Tinola/Sinigang</span>
+        <span class="pill p-meat">Grilled Fish</span>
+        <span class="pill p-veg">Cucumber Ensalada</span>
+        <span class="pill p-veg">Seaweed</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="meal-card">
+    <div class="meal-time">8–9pm</div>
+    <div>
+      <div class="meal-label">Evening — light only 🥚</div>
+      <div class="pills">
+        <span class="pill p-egg">2–3 🥚 eggs</span>
+        <span class="pill p-veg">cucumber</span>
+        <span class="pill p-veg">seaweed</span>
+        <span class="pill p-watermelon">Watermelon</span>
+        <span class="pill p-no">no rice</span>
+        <span class="pill p-no">no coffee</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div style="font-size: 12px; color: #444; margin-top: 14px; line-height: 1.8;">
+    💧 1.5L+ water daily &nbsp;·&nbsp; no rice at night &nbsp;·&nbsp; no coffee after 6pm
+  </div>
+
+</div>
+
+</section><!-- end meal section -->
+
+<!-- ===== TRACKER SECTION ===== -->
+<section id="tracker" class="section">
+  <div class="tracker-header">
+    <span class="tracker-title">Progress Tracker — May to Dec 2026</span>
+    <select id="monthSelect">
+      <option value="5">May 2026</option>
+      <option value="6">June 2026</option>
+      <option value="7">July 2026</option>
+      <option value="8">August 2026</option>
+      <option value="9">September 2026</option>
+      <option value="10">October 2026</option>
+      <option value="11">November 2026</option>
+      <option value="12">December 2026</option>
+    </select>
+  </div>
+
+  <div class="calendar-weekdays">
+    <div class="weekday">Sun</div>
+    <div class="weekday">Mon</div>
+    <div class="weekday">Tue</div>
+    <div class="weekday">Wed</div>
+    <div class="weekday">Thu</div>
+    <div class="weekday">Fri</div>
+    <div class="weekday">Sat</div>
+  </div>
+
+  <div class="calendar-grid" id="calendarGrid"></div>
+
+  <div style="display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; font-size: 12px; padding: 12px; background: #1a1a1a; border-radius: 8px; border: 1px solid #262626;">
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <span style="font-size: 16px; color: #4ecb8d;">✓</span>
+      <span style="color: #666;">Went to gym</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <span style="font-size: 16px; color: #5ba8d6;">●</span>
+      <span style="color: #666;">Rest day</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <span style="font-size: 16px; color: #ff6b6b;">✗</span>
+      <span style="color: #666;">Skipped</span>
+    </div>
+    <div style="color: #555; margin-left: auto;">Click on any date • 📝 = add note</div>
+  </div>
+</section><!-- end tracker section -->
+
+<!-- ===== NOTE MODAL ===== -->
+<div id="noteModal" class="note-modal">
+  <div class="note-modal-content">
+    <div class="note-modal-header">Add a note for this day</div>
+    <textarea id="noteInput" class="note-modal-input" placeholder="What's on your mind? (optional)"></textarea>
+    <div class="note-modal-buttons">
+      <button id="noteSaveBtn" class="note-modal-btn btn-save">Save</button>
+      <button id="noteDeleteBtn" class="note-modal-btn btn-delete">Delete note</button>
+      <button id="noteCancelBtn" class="note-modal-btn btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+</section></main>
+
+<script>
+// ── SECTION TOGGLE (ROUTINE / MEAL PLAN / TRACKER) ──────────────────────────
+document.querySelectorAll('.stab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.section;
+    document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+// ── GYM DAY TABS (LEG / FULL BODY / UPPER) ──────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.target;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+// ── TRACKER ──────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'gymTracker_v1';
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveData(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+}
+
+const STATUS_CYCLE = [null, 'went', 'rest', 'skipped'];
+const STATUS_ICON  = { went: '✓', rest: '●', skipped: '✗' };
+
+let trackerData = loadData();
+let modalDateKey = null;
+
+function buildCalendar(year, month) {
+  const grid = document.getElementById('calendarGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  const firstDay = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const today = new Date();
+
+  // blank cells before month start
+  for (let i = 0; i < firstDay; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-day';
+    blank.style.visibility = 'hidden';
+    grid.appendChild(blank);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const entry = trackerData[key] || {};
+    const status = entry.status || null;
+    const note   = entry.note   || '';
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-day' + (status ? ' ' + status : '');
+
+    const isToday = today.getFullYear() === year && today.getMonth()+1 === month && today.getDate() === d;
+    if (isToday) cell.style.outline = '2px solid #4ecb8d';
+
+    cell.innerHTML = `
+      <div class="cal-date">${d}</div>
+      <div class="cal-status">${status ? STATUS_ICON[status] : ''}</div>
+      ${note ? '<div class="cal-note-btn" title="Has note">📝</div>' : '<div class="cal-note-btn">📝</div>'}
+    `;
+
+    // tap/click: cycle status
+    cell.addEventListener('click', e => {
+      if (e.target.classList.contains('cal-note-btn')) {
+        openModal(key); return;
+      }
+      const cur = STATUS_CYCLE.indexOf(entry.status || null);
+      const next = STATUS_CYCLE[(cur + 1) % STATUS_CYCLE.length];
+      trackerData[key] = { ...entry, status: next };
+      saveData(trackerData);
+      buildCalendar(year, month);
+    });
+
+    grid.appendChild(cell);
+  }
+}
+
+function openModal(key) {
+  modalDateKey = key;
+  const entry = trackerData[key] || {};
+  document.getElementById('noteInput').value = entry.note || '';
+  document.getElementById('noteModal').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('noteModal').classList.remove('active');
+  modalDateKey = null;
+}
+
+document.getElementById('noteSaveBtn')?.addEventListener('click', () => {
+  if (!modalDateKey) return;
+  const note = document.getElementById('noteInput').value.trim();
+  trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note };
+  saveData(trackerData);
+  const sel = document.getElementById('monthSelect');
+  buildCalendar(2026, parseInt(sel.value));
+  closeModal();
+});
+document.getElementById('noteDeleteBtn')?.addEventListener('click', () => {
+  if (!modalDateKey) return;
+  if (trackerData[modalDateKey]) delete trackerData[modalDateKey].note;
+  saveData(trackerData);
+  const sel = document.getElementById('monthSelect');
+  buildCalendar(2026, parseInt(sel.value));
+  closeModal();
+});
+document.getElementById('noteCancelBtn')?.addEventListener('click', closeModal);
+document.getElementById('noteModal')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('noteModal')) closeModal();
+});
+
+// Month selector
+const monthSelect = document.getElementById('monthSelect');
+if (monthSelect) {
+  // Set default to current month if in range, else May
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear  = now.getFullYear();
+  if (currentYear === 2026 && currentMonth >= 5 && currentMonth <= 12) {
+    monthSelect.value = currentMonth;
+  } else {
+    monthSelect.value = 5;
+  }
+  buildCalendar(2026, parseInt(monthSelect.value));
+  monthSelect.addEventListener('change', () => {
+    buildCalendar(2026, parseInt(monthSelect.value));
+  });
+}
+</script>
+</body>
+</html>

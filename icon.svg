@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <style>
+      .icon-bg { fill: #0a0a0a; }
+      .icon-emoji { font-size: 120px; font-family: Apple Color Emoji, Segoe UI Emoji; }
+    </style>
+  </defs>
+  <rect class="icon-bg" width="192" height="192" rx="40"/>
+  <text x="96" y="145" text-anchor="middle" class="icon-emoji">🏋️</text>
+</svg>
