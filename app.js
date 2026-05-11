@@ -96,53 +96,73 @@ document.getElementById('obSubmitBtn').addEventListener('click', async () => {
 });
 
 // ── AUTH STATE ────────────────────────────────────────────────────────────────
-// 1. Put your specific Firebase UID here. 
-// (You can find this in your Firebase Console under the "Authentication" tab)
-const MY_MASTER_UID = "paste_your_uid_here"; 
+const MY_MASTER_UID = "sLS7HoMXLJYqevbK3nFaOKQWSBz1"; 
 
 let unsubTracker = null;
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // SOMEONE LOGGED IN
+    // 1. SOMEONE LOGGED IN: Hide login, show main app structure
     document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('appContent').style.display = 'block'; // Assuming your main app is wrapped in a div called appContent
+    document.getElementById('appContent').style.display = 'block'; 
 
+    // 2. Setup their profile info (Avatar, Name, Weight, Height)
+    const profileRef = doc(db, 'users', user.uid, 'profile', 'info');
+    let profileSnap = await getDoc(profileRef);
+    if (!profileSnap.exists()) {
+      const defaultProfile = { name: user.displayName || 'Lifter', weight: 75, height: 175 };
+      await setDoc(profileRef, defaultProfile);
+      profileSnap = await getDoc(profileRef);
+    }
+    
+    // Draw the top bar and stats
+    document.getElementById('userBar').classList.add('visible');
+    if (user.photoURL) document.getElementById('userAvatar').src = user.photoURL;
+    document.getElementById('userName').textContent = profileSnap.data().name;
+    applyProfile(profileSnap.data());
+
+    // 3. THE BOUNCER LOGIC
     if (user.uid === MY_MASTER_UID) {
-      // IT'S YOU! Load the hardcoded master plan.
-      console.log("Welcome back, Boss. Loading master plan.");
-      // (Your normal code to draw the UI runs here)
-
-    } else {
-      // IT'S A NEW USER! 
-      console.log("New user detected. Checking for their plan...");
+      // IT IS YOU! Ensure your hardcoded UI is visible
+      console.log("Welcome back, Boss.");
+      // If you added IDs to your gym program and meal plan sections, make sure they are visible:
+      // document.getElementById('yourGymProgramDiv').style.display = 'block'; 
       
-      // Look in the database to see if they already generated a plan
+    } else {
+      // IT IS A NEW USER! 
+      console.log("New user detected.");
+      
+      // Look in the database to see if they already have an AI plan
       const userPlanRef = doc(db, 'users', user.uid, 'data', 'plan');
-      const docSnap = await getDoc(userPlanRef);
+      const planSnap = await getDoc(userPlanRef);
 
-      if (docSnap.exists()) {
-        // They have a plan, render it!
-        const aiPlan = docSnap.data();
-        // renderGymRoutine(aiPlan.gymProgram); 
+      if (planSnap.exists()) {
+        // They have a plan! Render it (We will build this render function later)
+        console.log("Loading AI Plan:", planSnap.data());
       } else {
-        // BLANK SLATE: They have no plan yet. 
-        // 1. Hide your hardcoded UI elements so they don't see your stuff
-        document.getElementById('yourGymProgramDiv').style.display = 'none';
-        document.getElementById('yourMealPlanDiv').style.display = 'none';
+        // THEY HAVE NO PLAN. Hide your hardcoded stuff so they get a blank slate.
+        // NOTE: You need to add these IDs to the <section> tags in your index.html
+        // e.g., <section id="myGymProgram">
+        const myProgramSection = document.getElementById('myGymProgram');
+        const myMealSection = document.getElementById('myMealPlan');
         
-        // 2. Force open the AI Onboarding Modal
+        if(myProgramSection) myProgramSection.style.display = 'none';
+        if(myMealSection) myMealSection.style.display = 'none';
+        
+        // Force open the AI modal
         document.getElementById('aiOnboardModal').classList.add('visible');
       }
     }
 
-    // Load their specific tracker data (this already works perfectly based on your code)
+    // 4. Start tracking their clicks (this stays the same)
     setupCloudTracker(user.uid);
 
   } else {
     // LOGGED OUT
     document.getElementById('authScreen').style.display = 'flex';
     document.getElementById('appContent').style.display = 'none';
+    document.getElementById('userBar').classList.remove('visible');
+    if (unsubTracker) { unsubTracker(); unsubTracker = null; }
   }
 });
 
