@@ -1,0 +1,301 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, enableIndexedDbPersistence } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+
+// ── FIREBASE INIT ─────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDbVbEnL6PSJkV1Uzf4VaCxfVRvUpGnr7k",
+  authDomain: "gym-program-c02c7.firebaseapp.com",
+  projectId: "gym-program-c02c7",
+  storageBucket: "gym-program-c02c7.firebasestorage.app",
+  messagingSenderId: "694470409005",
+  appId: "1:694470409005:web:76e7578c73b406b589b1a4"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── OFFLINE PERSISTENCE (Gemini point 3) ─────────────────────────────────────
+// Caches data locally — if gym has no signal, saves to phone and syncs later
+enableIndexedDbPersistence(db).catch(err => {
+  if (err.code === 'failed-precondition') {
+    console.warn('Offline persistence unavailable: multiple tabs open.');
+  } else if (err.code === 'unimplemented') {
+    console.warn('Offline persistence not supported in this browser.');
+  }
+});
+
+// ── UI ELEMENTS ───────────────────────────────────────────────────────────────
+const authScreen    = document.getElementById('authScreen');
+const onboardScreen = document.getElementById('onboardScreen');
+const appContent    = document.getElementById('appContent');
+const userBar       = document.getElementById('userBar');
+const userAvatar    = document.getElementById('userAvatar');
+const userNameEl    = document.getElementById('userName');
+const syncStatus    = document.getElementById('syncStatus');
+
+function showAuth()    { authScreen.style.display='flex'; onboardScreen.classList.remove('visible'); appContent.classList.remove('visible'); userBar.classList.remove('visible'); }
+function showOnboard() { authScreen.style.display='none'; onboardScreen.classList.add('visible'); appContent.classList.remove('visible'); userBar.classList.remove('visible'); }
+function showApp()     { authScreen.style.display='none'; onboardScreen.classList.remove('visible'); appContent.classList.add('visible'); userBar.classList.add('visible'); }
+
+// ── SYNC STATUS ───────────────────────────────────────────────────────────────
+function setSyncStatus(state) {
+  if (state === 'syncing') {
+    syncStatus.textContent = '↻ syncing...';
+    syncStatus.className = 'syncing';
+  } else if (state === 'error') {
+    syncStatus.textContent = '⚠ offline — will sync later';
+    syncStatus.className = 'error';
+  } else {
+    syncStatus.textContent = '● synced';
+    syncStatus.className = 'synced';
+  }
+}
+
+// ── GOOGLE SIGN IN ────────────────────────────────────────────────────────────
+document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    console.error('Sign in failed:', e);
+  }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', () => signOut(auth));
+
+// ── ONBOARDING ────────────────────────────────────────────────────────────────
+let selectedGoal = null;
+document.querySelectorAll('.ob-goal-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ob-goal-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedGoal = btn.dataset.goal;
+  });
+});
+
+document.getElementById('obSubmitBtn').addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+  const name   = document.getElementById('obName').value.trim() || user.displayName.split(' ')[0];
+  const weight = document.getElementById('obWeight').value.trim() || '—';
+  const height = document.getElementById('obHeight').value.trim() || '—';
+  const goal   = selectedGoal || 'both';
+  const profile = { name, weight, height, goal, setupDone: true, createdAt: Date.now() };
+
+  try {
+    await setDoc(doc(db, 'users', user.uid, 'data', 'profile'), profile);
+    applyProfile(profile);
+    showApp();
+    setupCloudTracker(user.uid);
+  } catch (e) {
+    console.error('Failed to save profile:', e);
+    alert('Could not save your profile. Check your connection and try again.');
+  }
+});
+
+// ── AUTH STATE ────────────────────────────────────────────────────────────────
+let unsubTracker = null;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    showAuth();
+    if (unsubTracker) { unsubTracker(); unsubTracker = null; }
+    return;
+  }
+
+  userAvatar.src = user.photoURL || '';
+  userNameEl.textContent = user.displayName || user.email;
+
+  try {
+    const profileSnap = await getDoc(doc(db, 'users', user.uid, 'data', 'profile'));
+    if (!profileSnap.exists() || !profileSnap.data().setupDone) {
+      showOnboard();
+      return;
+    }
+    applyProfile(profileSnap.data());
+    showApp();
+    setupCloudTracker(user.uid);
+  } catch (e) {
+    console.error('Failed to load profile:', e);
+    setSyncStatus('error');
+    showApp(); // show app anyway — offline persistence may still have data
+  }
+});
+
+// ── APPLY PROFILE TO UI ───────────────────────────────────────────────────────
+function applyProfile(profile) {
+  const statWeight = document.querySelector('.stats-bar .stat:nth-child(1) span');
+  const statHeight = document.querySelector('.stats-bar .stat:nth-child(2) span');
+  const subtitle   = document.querySelector('.subtitle');
+  if (statWeight) statWeight.textContent = profile.weight + ' kg';
+  if (statHeight) statHeight.textContent = profile.height;
+  if (subtitle)   subtitle.textContent   = profile.name + "'s Program + Meal Plan";
+}
+
+// ── CLOUD TRACKER SYNC (with error handling — Gemini point 3) ─────────────────
+function setupCloudTracker(uid) {
+  const trackerRef = doc(db, 'users', uid, 'data', 'tracker');
+
+  // Real-time listener — updates UI instantly on any device
+  unsubTracker = onSnapshot(trackerRef, (snap) => {
+    if (snap.exists()) {
+      window.trackerData = snap.data().days || {};
+      const sel = document.getElementById('monthSelect');
+      if (sel && window.buildCalendar) {
+        window.buildCalendar(2026, parseInt(sel.value));
+      }
+    }
+    setSyncStatus('synced');
+  }, (err) => {
+    console.error('Tracker sync error:', err);
+    setSyncStatus('error');
+  });
+
+  // Override saveData — writes to Firestore with error handling
+  window.saveData = async (data) => {
+    setSyncStatus('syncing');
+    window.trackerData = data;
+    try {
+      await setDoc(trackerRef, { days: data }, { merge: true });
+      setSyncStatus('synced');
+    } catch (err) {
+      console.error('Sync failed:', err);
+      setSyncStatus('error');
+      // Data is saved locally via IndexedDB persistence — will retry when online
+    }
+  };
+}
+
+// ── SECTION TOGGLE ────────────────────────────────────────────────────────────
+document.querySelectorAll('.stab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.section;
+    document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+// ── GYM DAY TABS ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.target;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+// ── TRACKER ───────────────────────────────────────────────────────────────────
+window.saveData = function(data) {
+  try { localStorage.setItem('gymTracker_v1', JSON.stringify(data)); } catch {}
+};
+
+window.trackerData = (() => {
+  try { return JSON.parse(localStorage.getItem('gymTracker_v1')) || {}; }
+  catch { return {}; }
+})();
+
+const STATUS_CYCLE = [null, 'went', 'rest', 'skipped'];
+const STATUS_ICON  = { went: '✓', rest: '●', skipped: '✗' };
+
+let modalDateKey = null;
+
+window.buildCalendar = function(year, month) {
+  const grid = document.getElementById('calendarGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  const firstDay    = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const today       = new Date();
+
+  for (let i = 0; i < firstDay; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-day';
+    blank.style.visibility = 'hidden';
+    grid.appendChild(blank);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key    = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const entry  = window.trackerData[key] || {};
+    const status = entry.status || null;
+    const note   = entry.note   || '';
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-day' + (status ? ' ' + status : '');
+
+    const isToday = today.getFullYear() === year && today.getMonth()+1 === month && today.getDate() === d;
+    if (isToday) cell.style.outline = '2px solid #4ecb8d';
+
+    cell.innerHTML = `
+      <div class="cal-date">${d}</div>
+      <div class="cal-status">${status ? STATUS_ICON[status] : ''}</div>
+      ${note ? '<div class="cal-note-btn" title="Has note">📝</div>' : '<div class="cal-note-btn">📝</div>'}
+    `;
+
+    cell.addEventListener('click', e => {
+      if (e.target.classList.contains('cal-note-btn')) { openModal(key); return; }
+      const cur  = STATUS_CYCLE.indexOf(entry.status || null);
+      const next = STATUS_CYCLE[(cur + 1) % STATUS_CYCLE.length];
+      window.trackerData[key] = { ...entry, status: next };
+      window.saveData(window.trackerData);
+      window.buildCalendar(year, month);
+    });
+
+    grid.appendChild(cell);
+  }
+};
+
+function openModal(key) {
+  modalDateKey = key;
+  const entry = window.trackerData[key] || {};
+  document.getElementById('noteInput').value = entry.note || '';
+  document.getElementById('noteModal').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('noteModal').classList.remove('active');
+  modalDateKey = null;
+}
+
+document.getElementById('noteSaveBtn')?.addEventListener('click', () => {
+  if (!modalDateKey) return;
+  const note = document.getElementById('noteInput').value.trim();
+  window.trackerData[modalDateKey] = { ...(window.trackerData[modalDateKey] || {}), note };
+  window.saveData(window.trackerData);
+  const sel = document.getElementById('monthSelect');
+  window.buildCalendar(2026, parseInt(sel.value));
+  closeModal();
+});
+
+document.getElementById('noteDeleteBtn')?.addEventListener('click', () => {
+  if (!modalDateKey) return;
+  if (window.trackerData[modalDateKey]) delete window.trackerData[modalDateKey].note;
+  window.saveData(window.trackerData);
+  const sel = document.getElementById('monthSelect');
+  window.buildCalendar(2026, parseInt(sel.value));
+  closeModal();
+});
+
+document.getElementById('noteCancelBtn')?.addEventListener('click', closeModal);
+document.getElementById('noteModal')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('noteModal')) closeModal();
+});
+
+// ── MONTH SELECTOR ────────────────────────────────────────────────────────────
+const monthSelect = document.getElementById('monthSelect');
+if (monthSelect) {
+  const now          = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear  = now.getFullYear();
+  monthSelect.value  = (currentYear === 2026 && currentMonth >= 5 && currentMonth <= 12) ? currentMonth : 5;
+  window.buildCalendar(2026, parseInt(monthSelect.value));
+  monthSelect.addEventListener('change', () => {
+    window.buildCalendar(2026, parseInt(monthSelect.value));
+  });
+}
