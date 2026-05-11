@@ -137,8 +137,8 @@ onAuthStateChanged(auth, async (user) => {
       const planSnap = await getDoc(userPlanRef);
 
       if (planSnap.exists()) {
-        // They have a plan! Render it (We will build this render function later)
-        console.log("Loading AI Plan:", planSnap.data());
+        // They have a plan! Render it
+        window.renderAIPlan(planSnap.data());
       } else {
         // THEY HAVE NO PLAN. Hide your hardcoded stuff so they get a blank slate.
         // NOTE: You need to add these IDs to the <section> tags in your index.html
@@ -180,15 +180,20 @@ function applyProfile(profile) {
 function setupCloudTracker(uid) {
   const trackerRef = doc(db, 'users', uid, 'data', 'tracker');
 
-  // Real-time listener — updates UI instantly on any device
+  // Real-time listener — auto-updates UI when data changes on any device
   unsubTracker = onSnapshot(trackerRef, (snap) => {
     if (snap.exists()) {
+      // User has data saved in Firebase, load it up!
       window.trackerData = snap.data().days || {};
-      const sel = document.getElementById('monthSelect');
-      if (sel && window.buildCalendar) {
-        window.buildCalendar(2026, parseInt(sel.value));
-      }
+    } else {
+      // THE FIX: New user with no data! Wipe the slate clean.
+      window.trackerData = {}; 
     }
+    
+    // Redraw the calendar immediately with the correct data (whether full or empty)
+    const sel = document.getElementById('monthSelect');
+    if (sel) window.buildCalendar(2026, parseInt(sel.value));
+    
     setSyncStatus('synced');
   }, (err) => {
     console.error('Tracker sync error:', err);
@@ -342,6 +347,42 @@ if (monthSelect) {
   });
 }
 
+// ── AI PLAN RENDERING ────────────────────────────────────────────────────────
+window.renderAIPlan = (planData) => {
+  // 1. Find the sections and make them visible
+  const myProgramSection = document.getElementById('myGymProgram');
+  const myMealSection = document.getElementById('myMealPlan');
+  myProgramSection.style.display = 'block';
+  myMealSection.style.display = 'block';
+
+  // 2. Set up the grid containers
+  myProgramSection.innerHTML = '<h2 class="section-title">GYM ROUTINE</h2><div id="aiGymGrid" class="program-grid"></div>';
+  myMealSection.innerHTML = '<h2 class="section-title">MEAL PLAN</h2><div id="aiMealGrid" class="program-grid"></div>';
+
+  const gymGrid = document.getElementById('aiGymGrid');
+  const mealGrid = document.getElementById('aiMealGrid');
+
+  // 3. Draw the Gym Boxes
+  if (planData.gymProgram) {
+    for (const [day, exercises] of Object.entries(planData.gymProgram)) {
+      let html = `<div class="stat-box"><div style="color: #888; font-size: 13px; margin-bottom: 8px;">${day.toUpperCase()}</div><div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+      exercises.forEach(ex => { html += `<div class="pill pill-accent">${ex}</div>`; });
+      html += `</div></div>`;
+      gymGrid.innerHTML += html;
+    }
+  }
+
+  // 4. Draw the Meal Boxes
+  if (planData.mealPlan) {
+    for (const [meal, foods] of Object.entries(planData.mealPlan)) {
+      let html = `<div class="stat-box"><div style="color: #888; font-size: 13px; margin-bottom: 8px;">${meal.toUpperCase()}</div><div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+      foods.forEach(food => { html += `<div class="pill" style="border-color: #d68b5b; color: #f0f0f0;">${food}</div>`; });
+      html += `</div></div>`;
+      mealGrid.innerHTML += html;
+    }
+  }
+};
+
 // ── AI PLAN GENERATOR ─────────────────────────────────────────────────────────
 window.generatePlan = async () => {
   // 1. Put your NEW API Key here
@@ -395,8 +436,18 @@ window.generatePlan = async () => {
     const textResponse = data.candidates[0].content.parts[0].text;
     const cleanJson = JSON.parse(textResponse.replace(/```json/g, "").replace(/```/g, ""));
 
-    console.log("🔥 THE AI MASTERPIECE: ", cleanJson);
-    step4.innerHTML = `<h3 style="color: #4ecb8d; text-align: center;">Plan Generated! Open your browser console to see it.</h3>`;
+    // 1. Save it to the user's database so it remembers it forever
+    const user = auth.currentUser;
+    if (user) {
+      const userPlanRef = doc(db, 'users', user.uid, 'data', 'plan');
+      await setDoc(userPlanRef, cleanJson);
+    }
+
+    // 2. Hide the modal
+    document.getElementById('aiOnboardModal').classList.remove('visible');
+
+    // 3. Paint it on the screen!
+    window.renderAIPlan(cleanJson);
     
   } catch (error) {
     console.error("AI Error:", error);
