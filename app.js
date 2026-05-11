@@ -96,31 +96,53 @@ document.getElementById('obSubmitBtn').addEventListener('click', async () => {
 });
 
 // ── AUTH STATE ────────────────────────────────────────────────────────────────
+// 1. Put your specific Firebase UID here. 
+// (You can find this in your Firebase Console under the "Authentication" tab)
+const MY_MASTER_UID = "paste_your_uid_here"; 
+
 let unsubTracker = null;
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    showAuth();
-    if (unsubTracker) { unsubTracker(); unsubTracker = null; }
-    return;
-  }
+  if (user) {
+    // SOMEONE LOGGED IN
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block'; // Assuming your main app is wrapped in a div called appContent
 
-  userAvatar.src = user.photoURL || '';
-  userNameEl.textContent = user.displayName || user.email;
+    if (user.uid === MY_MASTER_UID) {
+      // IT'S YOU! Load the hardcoded master plan.
+      console.log("Welcome back, Boss. Loading master plan.");
+      // (Your normal code to draw the UI runs here)
 
-  try {
-    const profileSnap = await getDoc(doc(db, 'users', user.uid, 'data', 'profile'));
-    if (!profileSnap.exists() || !profileSnap.data().setupDone) {
-      showOnboard();
-      return;
+    } else {
+      // IT'S A NEW USER! 
+      console.log("New user detected. Checking for their plan...");
+      
+      // Look in the database to see if they already generated a plan
+      const userPlanRef = doc(db, 'users', user.uid, 'data', 'plan');
+      const docSnap = await getDoc(userPlanRef);
+
+      if (docSnap.exists()) {
+        // They have a plan, render it!
+        const aiPlan = docSnap.data();
+        // renderGymRoutine(aiPlan.gymProgram); 
+      } else {
+        // BLANK SLATE: They have no plan yet. 
+        // 1. Hide your hardcoded UI elements so they don't see your stuff
+        document.getElementById('yourGymProgramDiv').style.display = 'none';
+        document.getElementById('yourMealPlanDiv').style.display = 'none';
+        
+        // 2. Force open the AI Onboarding Modal
+        document.getElementById('aiOnboardModal').classList.add('visible');
+      }
     }
-    applyProfile(profileSnap.data());
-    showApp();
+
+    // Load their specific tracker data (this already works perfectly based on your code)
     setupCloudTracker(user.uid);
-  } catch (e) {
-    console.error('Failed to load profile:', e);
-    setSyncStatus('error');
-    showApp(); // show app anyway — offline persistence may still have data
+
+  } else {
+    // LOGGED OUT
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('appContent').style.display = 'none';
   }
 });
 
