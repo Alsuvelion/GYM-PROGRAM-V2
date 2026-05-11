@@ -8,6 +8,37 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f0f; color: #f0f0f0; min-height: 100vh; padding: 24px 16px 60px; }
+
+  #authScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; gap: 24px; text-align: center; }
+  #authScreen h2 { font-size: 28px; font-weight: 700; }
+  #authScreen p { color: #888; font-size: 14px; max-width: 280px; line-height: 1.6; }
+  .google-btn { display: flex; align-items: center; gap: 12px; background: #fff; color: #222; border: none; border-radius: 12px; padding: 14px 24px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .google-btn:hover { opacity: 0.85; }
+
+  #userBar { display: none; align-items: center; gap: 10px; margin-bottom: 16px; }
+  #userBar.visible { display: flex; }
+  #userAvatar { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #2a2a2a; }
+  #userName { font-size: 13px; color: #888; flex: 1; }
+  #signOutBtn { font-size: 12px; color: #555; background: none; border: 1px solid #2a2a2a; border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+  #signOutBtn:hover { color: #888; border-color: #444; }
+  #syncStatus { font-size: 11px; color: #444; text-align: right; margin-bottom: 8px; transition: color 0.3s; }
+  #syncStatus.synced { color: #2a6645; }
+  #syncStatus.syncing { color: #7a5220; }
+
+  #onboardScreen { display: none; flex-direction: column; gap: 20px; max-width: 400px; margin: 40px auto; }
+  #onboardScreen.visible { display: flex; }
+  #onboardScreen h2 { font-size: 22px; font-weight: 700; }
+  #onboardScreen p { color: #888; font-size: 13px; }
+  .ob-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .ob-input { width: 100%; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #f0f0f0; font-family: inherit; }
+  .ob-input:focus { outline: none; border-color: #4ecb8d; }
+  .ob-goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ob-goal-btn { padding: 12px; border-radius: 10px; border: 1px solid #2a2a2a; background: #141414; color: #888; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .ob-goal-btn.selected { background: #0d2a1c; border-color: #4ecb8d; color: #4ecb8d; }
+  .ob-submit { width: 100%; padding: 14px; border-radius: 12px; border: none; background: #4ecb8d; color: #0d2a1c; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+  .ob-submit:hover { background: #6dd9a0; }
+  #appContent { display: none; }
+  #appContent.visible { display: block; }
   h1 { font-size: 22px; font-weight: 700; letter-spacing: .02em; margin-bottom: 4px; }
   .subtitle { font-size: 13px; color: #888; margin-bottom: 20px; }
 
@@ -46,12 +77,6 @@
   .stab[data-section="tracker"]           { border-left-color: #3a2a5a; }
   .stab[data-section="tracker"]:hover     { border-left-color: #a89cf0; color: #a89cf0; }
   .stab[data-section="tracker"].active    { background: #1a1430; border-color: #352860; border-left-color: #a89cf0; color: #a89cf0; }
-
-  /* CHANGELOG — blue */
-  .stab[data-section="changelog"]           { border-left-color: #2a3a5a; }
-  .stab[data-section="changelog"]:hover     { border-left-color: #5ba3ff; color: #5ba3ff; }
-  .stab[data-section="changelog"].active    { background: #0d1a3a; border-color: #1a3a66; border-left-color: #5ba3ff; color: #5ba3ff; }
-  
   .section { display: none; }
   .section.active { display: block; }
 
@@ -228,100 +253,22 @@
   .cal-day:hover { transform: translateY(-2px); border-color: #555; background: #1a1a1a; }
   .cal-date { font-size: 13px; font-weight: 700; color: #888; margin-bottom: 8px; min-height: 18px; }
   .cal-status { font-size: 18px; transition: all 0.3s ease; height: 24px; display: flex; align-items: center; justify-content: center; }
-  .cal-note-btn { 
-    font-size: 11px; 
-    color: #555; 
-    cursor: pointer; 
-    transition: all 0.2s; 
-    margin-top: 4px; 
-    opacity: 0; 
-    position: absolute; 
-    top: 2px; 
-    right: 2px;
-    background: rgba(61, 220, 132, 0.15);
-    padding: 3px 5px;
-    border-radius: 4px;
-    border: 1px solid rgba(61, 220, 132, 0.3);
-  }
-  .cal-day:hover .cal-note-btn { opacity: 0.8; }
-  .cal-note-btn:hover { 
-    opacity: 1; 
-    color: #4ecb8d;
-    background: rgba(61, 220, 132, 0.25);
-    border-color: rgba(61, 220, 132, 0.5);
-  }
+  .cal-note-btn { font-size: 10px; color: #555; cursor: pointer; transition: all 0.2s; margin-top: 4px; opacity: 0; position: absolute; top: 2px; right: 2px; }
+  .cal-day:hover .cal-note-btn { opacity: 0.6; }
+  .cal-note-btn:hover { opacity: 1; color: #f0f0f0; }
   
-  /* Workout badges */
-  .cal-badge { font-size: 14px; margin-top: 2px; display: inline-flex; align-items: center; gap: 3px; }
-  .cal-badge-legs { color: #3ddc84; }
-  .cal-badge-full { color: #d4943a; }
-  .cal-badge-upper { color: #a89cf0; }
-  .cal-badge-extra { color: #5ba3ff; }
-  .cal-badge-text { font-size: 10px; font-weight: 600; }
+  /* Status colors */
+  .cal-day.went { border-color: #1a6645; background: #0d3326; }
+  .cal-day.went .cal-date { color: #4ecb8d; }
+  .cal-day.went .cal-status { color: #4ecb8d; }
   
-  /* NOTE INDICATOR BADGE */
-  .cal-note-indicator { 
-    position: absolute; 
-    top: 4px; 
-    right: 4px; 
-    width: 18px; 
-    height: 18px; 
-    border-radius: 50%; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 10px; 
-    font-weight: 700;
-    z-index: 10;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
-  .cal-day.went .cal-note-indicator { background: #4ecb8d; color: #0f0f0f; }
-  .cal-day.rest .cal-note-indicator { background: #5ba3ff; color: #0f0f0f; }
-  .cal-day.skipped .cal-note-indicator { background: #ff8a7a; color: #0f0f0f; }
+  .cal-day.rest { border-color: #1a3a66; background: #0d2a4d; }
+  .cal-day.rest .cal-date { color: #5ba8d6; }
+  .cal-day.rest .cal-status { color: #5ba8d6; }
   
-  /* Status colors with enhanced styling */
-  .cal-day.went { 
-    border-color: #3ddc84; 
-    background: linear-gradient(135deg, #0d3326 0%, #0a2620 100%);
-    border-width: 2px;
-    box-shadow: 0 0 12px rgba(61, 220, 132, 0.2);
-    transition: all 0.3s ease;
-  }
-  .cal-day.went:hover { 
-    box-shadow: 0 0 20px rgba(61, 220, 132, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
-    transform: translateY(-3px);
-  }
-  .cal-day.went .cal-date { color: #4ecb8d; font-weight: 700; }
-  .cal-day.went .cal-status { color: #4ecb8d; font-weight: 700; }
-  
-  .cal-day.rest { 
-    border-color: #5ba8d6; 
-    background: linear-gradient(135deg, #0d2a4d 0%, #081f38 100%);
-    border-width: 2px;
-    box-shadow: 0 0 12px rgba(91, 168, 214, 0.2);
-    transition: all 0.3s ease;
-  }
-  .cal-day.rest:hover { 
-    box-shadow: 0 0 20px rgba(91, 168, 214, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
-    transform: translateY(-3px);
-  }
-  .cal-day.rest .cal-date { color: #5ba8d6; font-weight: 700; }
-  .cal-day.rest .cal-status { color: #5ba8d6; font-weight: 700; }
-  
-  .cal-day.skipped { 
-    border-color: #ff6b6b; 
-    background: linear-gradient(135deg, #4d1a1a 0%, #3d0f0f 100%);
-    border-width: 2px;
-    box-shadow: 0 0 12px rgba(255, 107, 107, 0.2);
-    transition: all 0.3s ease;
-  }
-  .cal-day.skipped:hover { 
-    box-shadow: 0 0 20px rgba(255, 107, 107, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
-    transform: translateY(-3px);
-  }
-  .cal-day.skipped .cal-date { color: #ff6b6b; font-weight: 700; }
-  .cal-day.skipped .cal-status { color: #ff6b6b; font-weight: 700; }
+  .cal-day.skipped { border-color: #664d4d; background: #4d1a1a; }
+  .cal-day.skipped .cal-date { color: #ff6b6b; }
+  .cal-day.skipped .cal-status { color: #ff6b6b; }
   
   /* Note modal */
   .note-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 1000; align-items: center; justify-content: center; }
@@ -332,225 +279,71 @@
   .note-modal-input:focus { outline: none; border-color: #555; }
   .note-modal-buttons { display: flex; gap: 8px; }
   .note-modal-btn { padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-save { background: #4ecb8d; color: #0d3326; flex: 1; text-align: center; }
+  .btn-save { background: #4ecb8d; color: #0d3326; }
   .btn-save:hover { background: #6dd9a0; }
   .btn-cancel { background: #2a2a2a; color: #f0f0f0; }
   .btn-cancel:hover { background: #333; }
-  .btn-delete { background: #663333; color: #ff6b6b; }
+  .btn-delete { background: #663333; color: #ff6b6b; flex: 1; text-align: center; }
   .btn-delete:hover { background: #804040; }
-  
-  /* Modal labels and select */
-  .note-modal-label { display: block; font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .06em; margin-top: 12px; margin-bottom: 6px; }
-  .note-modal-select { width: 100%; background: #151515; border: 1px solid #2a2a2a; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: #f0f0f0; font-family: inherit; margin-bottom: 12px; }
-  .note-modal-select:focus { outline: none; border-color: #4ecb8d; }
-  
-  /* Exercise Checklist */
-  .exercise-list { background: #151515; border: 1px solid #2a2a2a; border-radius: 6px; padding: 10px; margin-bottom: 12px; max-height: 180px; overflow-y: auto; }
-  .exercise-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; }
-  .exercise-item input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; accent-color: #4ecb8d; }
-  .exercise-item label { cursor: pointer; flex: 1; color: #ccc; }
-  .exercise-item:hover label { color: #f0f0f0; }
-  
-  /* Session Log View */
-  .session-log { margin-top: 16px; }
-  .session-card { background: #1a1a1a; border: 1px solid #262626; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
-  .session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .session-date { font-size: 13px; font-weight: 600; color: #4ecb8d; }
-  .session-type { font-size: 12px; color: #888; }
-  .session-exercises { font-size: 12px; color: #aaa; margin: 6px 0; }
-  .session-notes { font-size: 12px; color: #999; font-style: italic; margin: 6px 0; }
-  
-  /* Modal scroll */
-  .note-modal-content { max-height: 90vh; overflow-y: auto; }
-
-  /* === CHANGELOG CSS === */
-  .changelog-container { margin-top: 16px; }
-  .changelog-entry {
-    background: #151515;
-    border-left: 3px solid #4ecb8d;
-    border-radius: 6px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    transition: all 0.2s ease;
-  }
-  .changelog-entry:hover { background: #1a1a1a; transform: translateX(4px); }
-  .changelog-entry.weight-change { border-left-color: #4ecb8d; }
-  .changelog-entry.session-log { border-left-color: #d4943a; }
-  .changelog-entry.exercise-check { border-left-color: #a89cf0; }
-  .changelog-entry.note-added { border-left-color: #5ba3ff; }
-  
-  .changelog-time { font-size: 11px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
-  .changelog-type { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-bottom: 6px; text-transform: uppercase; }
-  .changelog-type.weight { background: #0d3326; color: #4ecb8d; }
-  .changelog-type.session { background: #2a1e08; color: #d4943a; }
-  .changelog-type.exercise { background: #1e1a3a; color: #a89cf0; }
-  .changelog-type.note { background: #0d1e3a; color: #5ba3ff; }
-  
-  .changelog-text { font-size: 12px; color: #ccc; line-height: 1.5; margin-bottom: 4px; }
-  .changelog-emoji { font-size: 14px; margin-right: 6px; }
-  
-  .changelog-empty { text-align: center; padding: 30px 20px; color: #555; font-size: 13px; }
-  .changelog-empty .big-emoji { font-size: 36px; margin-bottom: 8px; }
-
-  /* === SESSION CARD (CHANGELOG) === */
-  .cl-session-card {
-    background: #141414;
-    border: 1px solid #2a2a2a;
-    border-left: 3px solid #d4943a;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    overflow: hidden;
-    transition: all 0.25s ease;
-  }
-  .cl-session-card:hover { border-color: #3a3a3a; border-left-color: #e8a54a; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
-
-  .cl-session-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 12px 14px 10px;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .cl-session-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .cl-session-date { font-size: 11px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-  .cl-session-badge {
-    font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
-    background: #2a1e08; color: #d4943a; text-transform: uppercase;
-  }
-  .cl-edited-badge {
-    font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
-    background: #1e1a3a; color: #a89cf0; text-transform: uppercase;
-    animation: softGlow 3s ease infinite;
-  }
-  @keyframes softGlow {
-    0%, 100% { box-shadow: 0 0 0px rgba(168,156,240,0); }
-    50% { box-shadow: 0 0 8px rgba(168,156,240,0.4); }
-  }
-  .cl-session-actions {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-  .cl-session-card:hover .cl-session-actions { opacity: 1; }
-  .cl-edit-btn, .cl-delete-btn, .cl-expand-btn {
-    font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 6px;
-    border: none; cursor: pointer; letter-spacing: .05em;
-    transition: all 0.2s ease;
-  }
-  .cl-edit-btn { background: #1a3a66; color: #5ba3ff; }
-  .cl-edit-btn:hover { background: #2a5a99; color: #80bfff; }
-  .cl-delete-btn { background: #3a1515; color: #ff6b6b; }
-  .cl-delete-btn:hover { background: #551f1f; color: #ff8a7a; }
-  .cl-expand-btn { background: #1e1e1e; color: #888; }
-  .cl-expand-btn:hover { background: #2a2a2a; color: #ccc; }
-
-  .cl-session-summary {
-    padding: 0 14px 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    border-bottom: 1px solid #1e1e1e;
-  }
-  .cl-workout-type { font-size: 14px; font-weight: 700; }
-  .cl-ex-count {
-    font-size: 11px; padding: 3px 8px; border-radius: 20px;
-    background: #1a1a1a; color: #888; border: 1px solid #2a2a2a;
-  }
-  .cl-form-preview {
-    font-size: 11px; color: #666; font-style: italic;
-    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-
-  /* Collapsible details section */
-  .cl-session-details {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 0 14px;
-  }
-  .cl-session-card.expanded .cl-session-details {
-    max-height: 800px;
-    padding: 12px 14px;
-  }
-
-  .cl-form-notes-box {
-    background: #1a2a1a;
-    border: 1px solid #1a5a30;
-    border-left: 3px solid #4ecb8d;
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    font-size: 12px;
-    color: #b0e8c8;
-    line-height: 1.6;
-  }
-  .cl-fn-label {
-    display: block;
-    font-size: 10px; font-weight: 700; color: #4ecb8d;
-    text-transform: uppercase; letter-spacing: .06em;
-    margin-bottom: 5px;
-  }
-  .cl-general-notes {
-    background: #181828;
-    border: 1px solid #2a2a4a;
-    border-left: 3px solid #5ba3ff;
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    font-size: 12px;
-    color: #a0b8e8;
-    line-height: 1.6;
-  }
-  .cl-gn-label {
-    display: block;
-    font-size: 10px; font-weight: 700; color: #5ba3ff;
-    text-transform: uppercase; letter-spacing: .06em;
-    margin-bottom: 5px;
-  }
-  .cl-exercises-section { margin-bottom: 10px; }
-  .cl-ex-label {
-    font-size: 10px; font-weight: 700; color: #666;
-    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px;
-  }
-  .cl-ex-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-  .cl-ex-tag {
-    font-size: 11px; padding: 3px 9px; border-radius: 20px;
-    background: #1e2a1e; color: #4ecb8d; border: 1px solid #1a4a2a;
-    font-weight: 500;
-  }
-  .cl-ex-tag.cardio { background: #2a1e08; color: #d4943a; border-color: #3a2a10; }
-
-  /* Edit History */
-  .cl-edit-history {
-    border-top: 1px solid #2a2a2a;
-    padding-top: 10px;
-    margin-top: 4px;
-  }
-  .cl-edit-history-title {
-    font-size: 10px; font-weight: 700; color: #555;
-    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px;
-  }
-  .cl-edit-entry {
-    display: flex; align-items: flex-start; gap: 8px;
-    padding: 6px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px;
-  }
-  .cl-edit-entry:last-child { border-bottom: none; }
-  .cl-edit-time { color: #a89cf0; font-weight: 700; white-space: nowrap; min-width: 60px; }
-  .cl-edit-changes { color: #888; line-height: 1.5; }
-
-  /* Modal edit mode */
-  .note-modal-header.edit-mode { color: #5ba3ff; }
-  .note-modal-content.edit-mode { border-color: #1a3a66; }
-
 </style>
 </head>
 <body>
 
-<header>
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <div style="font-size: 48px;">🏋️</div>
+  <h2>GYM ELEVATION</h2>
+  <p>Sign in to sync your program and tracker across all your devices.</p>
+  <button class="google-btn" id="googleSignInBtn">
+    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Continue with Google
+  </button>
+</div>
+
+<!-- ONBOARDING SCREEN -->
+<div id="onboardScreen">
+  <div>
+    <h2>Welcome! 💪</h2>
+    <p style="margin-top: 6px;">Let's set up your profile first.</p>
+  </div>
+  <div>
+    <div class="ob-label">Your nickname</div>
+    <input class="ob-input" id="obName" type="text" placeholder="e.g. Bro, King, etc." />
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+    <div>
+      <div class="ob-label">Weight (kg)</div>
+      <input class="ob-input" id="obWeight" type="number" placeholder="95" />
+    </div>
+    <div>
+      <div class="ob-label">Height</div>
+      <input class="ob-input" id="obHeight" type="text" placeholder='5&apos;6"' />
+    </div>
+  </div>
+  <div>
+    <div class="ob-label">Your goal</div>
+    <div class="ob-goal-grid">
+      <button class="ob-goal-btn" data-goal="lose">🔥 Lose fat</button>
+      <button class="ob-goal-btn" data-goal="build">💪 Build muscle</button>
+      <button class="ob-goal-btn" data-goal="both">⚡ Both</button>
+      <button class="ob-goal-btn" data-goal="maintain">🧘 Maintain</button>
+    </div>
+  </div>
+  <button class="ob-submit" id="obSubmitBtn">Start my program →</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="appContent">
+
+<!-- USER BAR -->
+<div id="userBar">
+  <img id="userAvatar" src="" alt="avatar" />
+  <span id="userName"></span>
+  <div id="syncStatus">● synced</div>
+  <button id="signOutBtn">Sign out</button>
+</div>
+
+
 <h1>GYM ELEVATION 🏋️</h1>
 <p class="subtitle">My Program + Meal Plan</p>
 
@@ -558,9 +351,7 @@
     <button class="stab active" data-section="gym">🏋️ ROUTINE</button>
     <button class="stab" data-section="meal">🍽️ MEAL PLAN</button>
     <button class="stab" data-section="tracker">📅 TRACKER</button>
-    <button class="stab" data-section="changelog">📋 CHANGELOG</button>
   </div>
-</header>
 
 <main>
 <!-- ===== GYM SECTION ===== -->
@@ -592,7 +383,7 @@
   <div id="leg" class="panel active">
     <div class="row-head"><span>Exercise</span><span style="text-align:center">Sets</span><span style="text-align:center">Reps</span><span style="text-align:center">kg</span></div>
     <div class="sec-label">machines</div>
-    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Hack Squat</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">50</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Hip Thrust</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">40</span></div>
     <div class="cardio-row">🚲 Bike — 2 min moderate <span class="badge b-cardio">interval</span></div>
     <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Seated Leg Press</span><span class="num">2–4</span><span class="num">8–10</span><span class="num">50</span></div>
     <div class="cardio-row">🏃 Treadmill — 2 min brisk walk <span class="badge b-cardio">interval</span></div>
@@ -633,7 +424,7 @@
     <div class="cardio-row" style="margin-top:4px">🏃 Treadmill — 2 min <span class="badge b-cardio">interval</span></div>
     <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Seated Leg Press</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">40</span></div>
     <div class="cardio-row">🚲 Bike — 2 min <span class="badge b-cardio">interval</span></div>
-    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Hack Squat</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">45</span></div>
+    <div class="row"><span class="machine-name"><span class="badge b-machine">M</span>Hip Thrust</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">35</span></div>
     <div class="cardio-row">🪜 Stepmaster — 2 min <span class="badge b-cardio">interval</span></div>
     <div class="row"><span class="machine-name"><span class="badge b-db">DB</span>DB Goblet Squat</span><span class="num">2–3</span><span class="num">8–10</span><span class="num">20</span></div>
     <div class="sec-label">core finisher</div>
@@ -858,73 +649,22 @@
     </div>
     <div style="color: #555; margin-left: auto;">Click on any date • 📝 = add note</div>
   </div>
-
-  <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; font-size: 11px; padding: 10px 12px; background: #151515; border-radius: 8px; border: 1px solid #262626;">
-    <div style="display: flex; align-items: center; gap: 5px; color: #666;">
-      <span style="font-size: 14px; color: #3ddc84;">🦵</span>
-      <span>Leg Day</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 5px; color: #666;">
-      <span style="font-size: 14px; color: #d4943a;">🔥</span>
-      <span>Full Body</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 5px; color: #666;">
-      <span style="font-size: 14px; color: #a89cf0;">💪</span>
-      <span>Upper Body</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 5px; color: #666;">
-      <span style="font-size: 14px; color: #5ba3ff;">⚡</span>
-      <span>Extra Session</span>
-    </div>
-  </div>
 </section><!-- end tracker section -->
 
 <!-- ===== NOTE MODAL ===== -->
 <div id="noteModal" class="note-modal">
   <div class="note-modal-content">
-    <div id="noteModalHeader" class="note-modal-header">Log this day</div>
-    <label class="note-modal-label">Workout Type</label>
-    <select id="workoutSelect" class="note-modal-select">
-      <option value="">— Auto-detect from schedule</option>
-      <option value="legs">🦵 Leg Day</option>
-      <option value="full">🔥 Full Body</option>
-      <option value="upper">💪 Upper Body</option>
-      <option value="extra">⚡ Extra Session</option>
-    </select>
-    
-    <label class="note-modal-label">Exercises Completed</label>
-    <div id="exerciseChecklistContainer" class="exercise-list"></div>
-    
-    <label class="note-modal-label">Form Notes (optional)</label>
-    <textarea id="formNotesInput" class="note-modal-input" placeholder="e.g. 'felt strong today', 'need to work on form', 'increased weight on chest press'..."></textarea>
-    
-    <label class="note-modal-label">General Notes (optional)</label>
-    <textarea id="noteInput" class="note-modal-input" placeholder="What's on your mind?"></textarea>
-    
+    <div class="note-modal-header">Add a note for this day</div>
+    <textarea id="noteInput" class="note-modal-input" placeholder="What's on your mind? (optional)"></textarea>
     <div class="note-modal-buttons">
-      <button id="noteCancelBtn" class="note-modal-btn btn-cancel">Cancel</button>
       <button id="noteSaveBtn" class="note-modal-btn btn-save">Save</button>
-      <button id="noteDeleteBtn" class="note-modal-btn btn-delete">Delete</button>
+      <button id="noteDeleteBtn" class="note-modal-btn btn-delete">Delete note</button>
+      <button id="noteCancelBtn" class="note-modal-btn btn-cancel">Cancel</button>
     </div>
   </div>
 </div>
 
-</section>
-
-<!-- ===== CHANGELOG SECTION ===== -->
-<section id="changelog" class="section">
-  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; flex-wrap:wrap; gap:8px;">
-    <h1>📋 Updates & Changes</h1>
-    <button onclick="if(confirm('Clear all changelog entries?')){changeLog=[];saveChangeLog();renderChangeLog();}"
-      style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;border:1px solid #2a2a2a;background:#1a1a1a;color:#666;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:all .2s;">
-      🗑 Clear All
-    </button>
-  </div>
-  <p class="subtitle">Your progress timeline · <span id="changelogCount">0</span> entries</p>
-  <div id="changelogList" class="changelog-container"></div>
-</section>
-
-</main>
+</section></main>
 
 <script>
 // ── SECTION TOGGLE (ROUTINE / MEAL PLAN / TRACKER) ──────────────────────────
@@ -952,78 +692,19 @@ document.querySelectorAll('.tab').forEach(btn => {
 // ── TRACKER ──────────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'gymTracker_v1';
 
-// Exercise lists for each workout type
-const EXERCISES_BY_WORKOUT = {
-  legs: [
-    'Hack Squat', 'Bike (interval)', 'Seated Leg Press', 'Treadmill (interval)',
-    'Leg Extension', 'Stepmaster (interval)', 'Prone Leg Curl', 'Abductor/Adductor',
-    'Goblet Squat', 'Romanian Deadlift', 'Reverse Lunge', 'Ab Machine'
-  ],
-  full: [
-    'Chest Press', 'Bike (interval)', 'Shoulder Press', 'Stepmaster (interval)',
-    'DB Lateral Raise', 'Treadmill (interval)', 'Pulldown', 'Pulley Row',
-    'DB Bent Over Row', 'Seated Leg Press', 'Hack Squat', 'DB Goblet Squat',
-    'Torso Rotation', 'Ab Machine'
-  ],
-  upper: [
-    'Chest Press', 'Bike (interval)', 'Pulldown', 'Treadmill (interval)',
-    'Pec Fly/Rear Deltoid', 'Stepmaster (interval)', 'Pulley Row',
-    'Split Shoulder Press', 'High Pull Low Rowing', 'DB Lateral Raise',
-    'Assist Dip Chin', 'Treadmill (cool down)', 'DB Bicep Curl', 'DB Overhead Tricep Ext.',
-    'Torso Rotation'
-  ],
-  extra: ['Cardio', 'Stretching', 'Core Work', 'Light Weights']
-};
-
 function loadData() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
   catch { return {}; }
 }
-function saveData(data) {
+window.saveData = function(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
-}
+};
 
 const STATUS_CYCLE = [null, 'went', 'rest', 'skipped'];
 const STATUS_ICON  = { went: '✓', rest: '●', skipped: '✗' };
 
 let trackerData = loadData();
 let modalDateKey = null;
-
-// Determine workout type by day of week
-function getWorkoutType(date) {
-  const dayOfWeek = date.getDay(); // 0 = Sun, 2 = Tue, 4 = Thu, 6 = Sat
-  if (dayOfWeek === 2) return { type: 'legs', emoji: '🦵', color: 'cal-badge-legs' };
-  if (dayOfWeek === 4) return { type: 'full', emoji: '🔥', color: 'cal-badge-full' };
-  if (dayOfWeek === 6) return { type: 'upper', emoji: '💪', color: 'cal-badge-upper' };
-  return null;
-}
-
-// Populate exercise checklist in modal
-function populateExerciseChecklist() {
-  const workoutType = document.getElementById('workoutSelect').value;
-  const container = document.getElementById('exerciseChecklistContainer');
-  container.innerHTML = '';
-  
-  if (!workoutType) {
-    container.innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">Select a workout type first</div>';
-    return;
-  }
-  
-  const exercises = EXERCISES_BY_WORKOUT[workoutType] || [];
-  const entry = trackerData[modalDateKey] || {};
-  const checkedExercises = entry.exercises || [];
-  
-  exercises.forEach(exercise => {
-    const isChecked = checkedExercises.includes(exercise);
-    const item = document.createElement('div');
-    item.className = 'exercise-item';
-    item.innerHTML = `
-      <input type="checkbox" id="ex-${exercise}" ${isChecked ? 'checked' : ''} data-exercise="${exercise}">
-      <label for="ex-${exercise}">${exercise}</label>
-    `;
-    container.appendChild(item);
-  });
-}
 
 function buildCalendar(year, month) {
   const grid = document.getElementById('calendarGrid');
@@ -1047,7 +728,6 @@ function buildCalendar(year, month) {
     const entry = trackerData[key] || {};
     const status = entry.status || null;
     const note   = entry.note   || '';
-    const loggedWorkout = entry.workout || null;
 
     const cell = document.createElement('div');
     cell.className = 'cal-day' + (status ? ' ' + status : '');
@@ -1055,34 +735,10 @@ function buildCalendar(year, month) {
     const isToday = today.getFullYear() === year && today.getMonth()+1 === month && today.getDate() === d;
     if (isToday) cell.style.outline = '2px solid #4ecb8d';
 
-    // Determine badge - priority: custom logged workout, then inferred from day of week if status is "went"
-    let badgeHTML = '';
-    if (status === 'went') {
-      let workoutInfo = null;
-      if (loggedWorkout) {
-        // Use custom logged workout
-        const workoutMap = { legs: { emoji: '🦵', text: 'Legs', color: 'cal-badge-legs' }, full: { emoji: '🔥', text: 'Full Body', color: 'cal-badge-full' }, upper: { emoji: '💪', text: 'Upper', color: 'cal-badge-upper' }, extra: { emoji: '⚡', text: 'Extra', color: 'cal-badge-extra' } };
-        workoutInfo = workoutMap[loggedWorkout];
-      } else {
-        // Infer from day of week
-        const dateObj = new Date(year, month - 1, d);
-        const inferred = getWorkoutType(dateObj);
-        if (inferred) {
-          const textMap = { legs: 'Legs', full: 'Full Body', upper: 'Upper' };
-          workoutInfo = { emoji: inferred.emoji, text: textMap[inferred.type], color: inferred.color };
-        }
-      }
-      if (workoutInfo) {
-        badgeHTML = `<div class="cal-badge ${workoutInfo.color}"><span>${workoutInfo.emoji}</span><span class="cal-badge-text">${workoutInfo.text}</span></div>`;
-      }
-    }
-
     cell.innerHTML = `
       <div class="cal-date">${d}</div>
       <div class="cal-status">${status ? STATUS_ICON[status] : ''}</div>
-      ${badgeHTML}
-      ${(entry.exercises && entry.exercises.length > 0) || entry.formNotes || note ? `<div class="cal-note-indicator" title="Has notes/exercises">📝</div>` : ''}
-      ${(entry.exercises && entry.exercises.length > 0) || entry.formNotes || note ? '' : '<div class="cal-note-btn">📝</div>'}
+      ${note ? '<div class="cal-note-btn" title="Has note">📝</div>' : '<div class="cal-note-btn">📝</div>'}
     `;
 
     // tap/click: cycle status
@@ -1093,7 +749,7 @@ function buildCalendar(year, month) {
       const cur = STATUS_CYCLE.indexOf(entry.status || null);
       const next = STATUS_CYCLE[(cur + 1) % STATUS_CYCLE.length];
       trackerData[key] = { ...entry, status: next };
-      saveData(trackerData);
+      window.saveData(trackerData);
       buildCalendar(year, month);
     });
 
@@ -1103,80 +759,28 @@ function buildCalendar(year, month) {
 
 function openModal(key) {
   modalDateKey = key;
-  editingChangelogId = null;
   const entry = trackerData[key] || {};
   document.getElementById('noteInput').value = entry.note || '';
-  document.getElementById('formNotesInput').value = entry.formNotes || '';
-  document.getElementById('workoutSelect').value = entry.workout || '';
-  const header = document.getElementById('noteModalHeader');
-  if (header) { header.textContent = 'Log this day'; header.classList.remove('edit-mode'); }
-  document.getElementById('noteModal').querySelector('.note-modal-content').classList.remove('edit-mode');
   document.getElementById('noteModal').classList.add('active');
-  populateExerciseChecklist();
 }
 function closeModal() {
   document.getElementById('noteModal').classList.remove('active');
-  document.getElementById('noteModal').querySelector('.note-modal-content').classList.remove('edit-mode');
-  const header = document.getElementById('noteModalHeader');
-  if (header) { header.textContent = 'Log this day'; header.classList.remove('edit-mode'); }
   modalDateKey = null;
-  editingChangelogId = null;
 }
 
 document.getElementById('noteSaveBtn')?.addEventListener('click', () => {
-  if (!modalDateKey && !editingChangelogId) return;
+  if (!modalDateKey) return;
   const note = document.getElementById('noteInput').value.trim();
-  const formNotes = document.getElementById('formNotesInput').value.trim();
-  const workout = document.getElementById('workoutSelect').value || null;
-
-  const checkedBoxes = document.querySelectorAll('#exerciseChecklistContainer input[type="checkbox"]:checked');
-  const exercises = Array.from(checkedBoxes).map(box => box.dataset.exercise);
-
-  if (editingChangelogId) {
-    // ── EDIT MODE ────────────────────────────────────────────────────────────
-    const existingEntry = changeLog.find(e => e.id === editingChangelogId);
-    if (existingEntry) {
-      const oldData = existingEntry.sessionData || {};
-      const newData = { workout, exercises, formNotes, note };
-      const changes = computeDiff(oldData, newData);
-      existingEntry.sessionData = newData;
-      existingEntry.editCount = (existingEntry.editCount || 0) + 1;
-      existingEntry.editHistory = existingEntry.editHistory || [];
-      existingEntry.editHistory.push({
-        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        timestamp: new Date().toISOString(),
-        changes
-      });
-      // Keep trackerData in sync
-      if (modalDateKey) {
-        trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note, formNotes, workout, exercises };
-        saveData(trackerData);
-      }
-      saveChangeLog();
-      renderChangeLog();
-    }
-    editingChangelogId = null;
-  } else {
-    // ── NORMAL LOG MODE ──────────────────────────────────────────────────────
-    trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note, formNotes, workout, exercises };
-    saveData(trackerData);
-    const sessionData = { workout, exercises, formNotes, note };
-    addToChangeLog('session', sessionData, modalDateKey);
-  }
-
+  trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note };
+  window.saveData(trackerData);
   const sel = document.getElementById('monthSelect');
   buildCalendar(2026, parseInt(sel.value));
   closeModal();
 });
 document.getElementById('noteDeleteBtn')?.addEventListener('click', () => {
   if (!modalDateKey) return;
-  if (trackerData[modalDateKey]) {
-    delete trackerData[modalDateKey].note;
-    delete trackerData[modalDateKey].workout;
-    delete trackerData[modalDateKey].exercises;
-    delete trackerData[modalDateKey].formNotes;
-  }
-  saveData(trackerData);
+  if (trackerData[modalDateKey]) delete trackerData[modalDateKey].note;
+  window.saveData(trackerData);
   const sel = document.getElementById('monthSelect');
   buildCalendar(2026, parseInt(sel.value));
   closeModal();
@@ -1185,220 +789,6 @@ document.getElementById('noteCancelBtn')?.addEventListener('click', closeModal);
 document.getElementById('noteModal')?.addEventListener('click', e => {
   if (e.target === document.getElementById('noteModal')) closeModal();
 });
-
-// Update exercise checklist when workout type changes
-document.getElementById('workoutSelect')?.addEventListener('change', populateExerciseChecklist);
-
-// ── CHANGELOG FUNCTIONS ──────────────────────────────────────────────────────
-const CHANGELOG_KEY = 'gymChangeLog';
-let changeLog = [];
-let editingChangelogId = null;
-
-function loadChangeLog() {
-  try { changeLog = JSON.parse(localStorage.getItem(CHANGELOG_KEY)) || []; }
-  catch { changeLog = []; }
-}
-
-function saveChangeLog() {
-  try { localStorage.setItem(CHANGELOG_KEY, JSON.stringify(changeLog)); } catch {}
-}
-
-function addToChangeLog(type, data, dateKey) {
-  const entry = {
-    id: Date.now(),
-    type,
-    dateKey: dateKey || null,
-    sessionData: type === 'session' ? data : null,
-    text: type !== 'session' ? data : null,
-    timestamp: new Date().toISOString(),
-    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    editHistory: [],
-    editCount: 0
-  };
-  changeLog.unshift(entry);
-  if (changeLog.length > 100) changeLog.pop();
-  saveChangeLog();
-  renderChangeLog();
-}
-
-function computeDiff(oldData, newData) {
-  const changes = [];
-  const oldEx = oldData.exercises || [];
-  const newEx = newData.exercises || [];
-  const added = newEx.filter(e => !oldEx.includes(e));
-  const removed = oldEx.filter(e => !newEx.includes(e));
-  if (oldData.workout !== newData.workout) changes.push('Workout type changed');
-  if (added.length) changes.push(`Added ${added.length} exercise${added.length > 1 ? 's' : ''}: ${added.join(', ')}`);
-  if (removed.length) changes.push(`Removed ${removed.length} exercise${removed.length > 1 ? 's' : ''}: ${removed.join(', ')}`);
-  if ((oldData.formNotes || '') !== (newData.formNotes || '')) changes.push('Updated form notes');
-  if ((oldData.note || '') !== (newData.note || '')) changes.push('Updated general notes');
-  return changes.length ? changes : ['Minor edits'];
-}
-
-function renderSessionCard(entry) {
-  const sd = entry.sessionData || {};
-  const workoutMap = {
-    legs:  { emoji: '🦵', text: 'Leg Day',       color: '#3ddc84' },
-    full:  { emoji: '🔥', text: 'Full Body',      color: '#d4943a' },
-    upper: { emoji: '💪', text: 'Upper Body',     color: '#a89cf0' },
-    extra: { emoji: '⚡', text: 'Extra Session',  color: '#5ba3ff' }
-  };
-  const wt = sd.workout ? workoutMap[sd.workout] : null;
-  const exercises = sd.exercises || [];
-  const isEdited = entry.editCount > 0;
-  const CARDIO_KEYWORDS = ['bike', 'treadmill', 'stepmaster', 'cardio', 'interval', 'cool down'];
-  const isCardio = ex => CARDIO_KEYWORDS.some(k => ex.toLowerCase().includes(k));
-
-  const exerciseTags = exercises.map(ex =>
-    `<span class="cl-ex-tag${isCardio(ex) ? ' cardio' : ''}">${isCardio(ex) ? '🏃' : '✓'} ${ex}</span>`
-  ).join('');
-
-  const editHistoryHTML = entry.editHistory && entry.editHistory.length > 0
-    ? `<div class="cl-edit-history">
-        <div class="cl-edit-history-title">✏️ Edit History (${entry.editHistory.length})</div>
-        ${entry.editHistory.map(eh => `
-          <div class="cl-edit-entry">
-            <span class="cl-edit-time">${eh.time}</span>
-            <span class="cl-edit-changes">${eh.changes.join(' · ')}</span>
-          </div>
-        `).join('')}
-      </div>` : '';
-
-  const formPreview = sd.formNotes
-    ? `<span class="cl-form-preview">"${sd.formNotes.length > 45 ? sd.formNotes.slice(0,45) + '…' : sd.formNotes}"</span>`
-    : '';
-
-  return `
-    <div class="cl-session-card" data-entry-id="${entry.id}">
-      <div class="cl-session-header">
-        <div class="cl-session-meta">
-          <span class="cl-session-date">${entry.date} · ${entry.time}</span>
-          <span class="cl-session-badge">💪 SESSION${isEdited ? ' (Edited)' : ' (Logged)'}</span>
-          ${isEdited ? `<span class="cl-edited-badge">✏️ Edited ${entry.editCount}×</span>` : ''}
-        </div>
-        <div class="cl-session-actions">
-          <button class="cl-edit-btn" data-entry-id="${entry.id}">EDIT</button>
-          <button class="cl-delete-btn" data-entry-id="${entry.id}">DEL</button>
-          <button class="cl-expand-btn" data-entry-id="${entry.id}">▼ Expand</button>
-        </div>
-      </div>
-      <div class="cl-session-summary">
-        ${wt
-          ? `<span class="cl-workout-type" style="color:${wt.color}">${wt.emoji} ${wt.text}</span>`
-          : `<span class="cl-workout-type" style="color:#666">No type set</span>`}
-        <span class="cl-ex-count">${exercises.length} exercise${exercises.length !== 1 ? 's' : ''}</span>
-        ${formPreview}
-      </div>
-      <div class="cl-session-details">
-        ${sd.formNotes ? `<div class="cl-form-notes-box"><span class="cl-fn-label">⚡ Form Notes</span>${sd.formNotes}</div>` : ''}
-        ${sd.note ? `<div class="cl-general-notes"><span class="cl-gn-label">📝 General Notes</span>${sd.note}</div>` : ''}
-        ${exercises.length > 0 ? `
-          <div class="cl-exercises-section">
-            <div class="cl-ex-label">Exercises Completed (${exercises.length})</div>
-            <div class="cl-ex-tags">${exerciseTags}</div>
-          </div>` : ''}
-        ${editHistoryHTML}
-      </div>
-    </div>`;
-}
-
-function renderChangeLog() {
-  const list = document.getElementById('changelogList');
-  if (!list) return;
-  const countEl = document.getElementById('changelogCount');
-  if (countEl) countEl.textContent = changeLog.length;
-
-  if (changeLog.length === 0) {
-    list.innerHTML = `
-      <div class="changelog-empty">
-        <div class="big-emoji">📝</div>
-        No updates yet. Start logging sessions and making changes!
-      </div>`;
-    return;
-  }
-
-  list.innerHTML = changeLog.map(entry => {
-    if (entry.type === 'session' && entry.sessionData) {
-      return renderSessionCard(entry);
-    }
-    // Legacy / non-session entries
-    const typeLabels = {
-      weight:   { emoji: '⚖️', label: 'Weight',   cls: 'weight' },
-      session:  { emoji: '💪', label: 'Session',  cls: 'session' },
-      exercise: { emoji: '✓',  label: 'Exercise', cls: 'exercise' },
-      note:     { emoji: '📝', label: 'Note',     cls: 'note' }
-    };
-    const info = typeLabels[entry.type] || typeLabels.note;
-    return `
-      <div class="changelog-entry ${entry.type}">
-        <div class="changelog-time">${entry.date} · ${entry.time}</div>
-        <span class="changelog-type ${info.cls}">${info.emoji} ${info.label}</span>
-        <div class="changelog-text">${entry.text || ''}</div>
-      </div>`;
-  }).join('');
-
-  // Expand / collapse
-  list.querySelectorAll('.cl-expand-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const card = btn.closest('.cl-session-card');
-      const expanded = card.classList.toggle('expanded');
-      btn.textContent = expanded ? '▲ Collapse' : '▼ Expand';
-    });
-  });
-
-  // Edit session
-  list.querySelectorAll('.cl-edit-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      openEditModal(parseInt(btn.dataset.entryId));
-    });
-  });
-
-  // Delete session
-  list.querySelectorAll('.cl-delete-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      if (!confirm('Delete this session log? This cannot be undone.')) return;
-      changeLog = changeLog.filter(en => en.id !== parseInt(btn.dataset.entryId));
-      saveChangeLog();
-      renderChangeLog();
-    });
-  });
-}
-
-function openEditModal(entryId) {
-  const entry = changeLog.find(e => e.id === entryId);
-  if (!entry) return;
-  editingChangelogId = entryId;
-  const sd = entry.sessionData || {};
-  // Use the dateKey stored in the entry, or fall back to today
-  modalDateKey = entry.dateKey || Object.keys(trackerData).find(k =>
-    trackerData[k] && (trackerData[k].exercises || trackerData[k].formNotes || trackerData[k].note)
-  ) || null;
-
-  // Populate modal fields from sessionData
-  document.getElementById('noteInput').value = sd.note || '';
-  document.getElementById('formNotesInput').value = sd.formNotes || '';
-  document.getElementById('workoutSelect').value = sd.workout || '';
-
-  const header = document.getElementById('noteModalHeader');
-  if (header) { header.textContent = '✏️ Edit Session'; header.classList.add('edit-mode'); }
-  document.getElementById('noteModal').classList.add('active');
-  document.getElementById('noteModal').querySelector('.note-modal-content').classList.add('edit-mode');
-
-  // Populate exercise checklist then restore checked state
-  if (sd.workout) {
-    // Temporarily override trackerData exercises so checklist repopulates correctly
-    if (modalDateKey) {
-      trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), exercises: sd.exercises || [], workout: sd.workout };
-    }
-  }
-  populateExerciseChecklist();
-}
-
-loadChangeLog();
 
 // Month selector
 const monthSelect = document.getElementById('monthSelect');
@@ -1416,6 +806,132 @@ if (monthSelect) {
   monthSelect.addEventListener('change', () => {
     buildCalendar(2026, parseInt(monthSelect.value));
   });
+}
+</script>
+
+</div><!-- end appContent -->
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDbVbEnL6PSJkV1Uzf4VaCxfVRvUpGnr7k",
+  authDomain: "gym-program-c02c7.firebaseapp.com",
+  projectId: "gym-program-c02c7",
+  storageBucket: "gym-program-c02c7.firebasestorage.app",
+  messagingSenderId: "694470409005",
+  appId: "1:694470409005:web:76e7578c73b406b589b1a4"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const authScreen    = document.getElementById('authScreen');
+const onboardScreen = document.getElementById('onboardScreen');
+const appContent    = document.getElementById('appContent');
+const userBar       = document.getElementById('userBar');
+const userAvatar    = document.getElementById('userAvatar');
+const userNameEl    = document.getElementById('userName');
+const syncStatus    = document.getElementById('syncStatus');
+
+function showAuth()    { authScreen.style.display='flex'; onboardScreen.classList.remove('visible'); appContent.classList.remove('visible'); }
+function showOnboard() { authScreen.style.display='none'; onboardScreen.classList.add('visible'); appContent.classList.remove('visible'); }
+function showApp()     { authScreen.style.display='none'; onboardScreen.classList.remove('visible'); appContent.classList.add('visible'); userBar.classList.add('visible'); }
+
+// ── GOOGLE SIGN IN ───────────────────────────────────────────────────────────
+document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  } catch (e) { console.error(e); }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', () => signOut(auth));
+
+// ── ONBOARDING ───────────────────────────────────────────────────────────────
+let selectedGoal = null;
+document.querySelectorAll('.ob-goal-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ob-goal-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedGoal = btn.dataset.goal;
+  });
+});
+
+document.getElementById('obSubmitBtn').addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+  const name   = document.getElementById('obName').value.trim() || user.displayName.split(' ')[0];
+  const weight = document.getElementById('obWeight').value.trim() || '—';
+  const height = document.getElementById('obHeight').value.trim() || '—';
+  const goal   = selectedGoal || 'both';
+  const profile = { name, weight, height, goal, setupDone: true, createdAt: Date.now() };
+  await setDoc(doc(db, 'users', user.uid, 'data', 'profile'), profile);
+  applyProfile(profile);
+  showApp();
+});
+
+// ── AUTH STATE ───────────────────────────────────────────────────────────────
+let unsubTracker = null;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { showAuth(); if (unsubTracker) unsubTracker(); return; }
+
+  userAvatar.src = user.photoURL || '';
+  userNameEl.textContent = user.displayName || user.email;
+
+  const profileRef = doc(db, 'users', user.uid, 'data', 'profile');
+  const profileSnap = await getDoc(profileRef);
+
+  if (!profileSnap.exists() || !profileSnap.data().setupDone) {
+    showOnboard();
+    return;
+  }
+
+  applyProfile(profileSnap.data());
+  showApp();
+  setupCloudTracker(user.uid);
+});
+
+// ── APPLY PROFILE TO UI ──────────────────────────────────────────────────────
+function applyProfile(profile) {
+  const statWeight = document.querySelector('.stats-bar .stat:nth-child(1) span');
+  const statHeight = document.querySelector('.stats-bar .stat:nth-child(2) span');
+  const subtitle   = document.querySelector('.subtitle');
+  if (statWeight) statWeight.textContent = profile.weight + ' kg';
+  if (statHeight) statHeight.textContent = profile.height;
+  if (subtitle)   subtitle.textContent   = profile.name + "'s Program + Meal Plan";
+}
+
+// ── CLOUD TRACKER SYNC ───────────────────────────────────────────────────────
+function setSyncStatus(state) {
+  syncStatus.textContent = state === 'syncing' ? '↻ syncing...' : '● synced';
+  syncStatus.className = state;
+}
+
+function setupCloudTracker(uid) {
+  const trackerRef = doc(db, 'users', uid, 'data', 'tracker');
+
+  // Real-time listener — auto-updates UI when data changes on any device
+  unsubTracker = onSnapshot(trackerRef, (snap) => {
+    if (snap.exists()) {
+      trackerData = snap.data().days || {};
+      const sel = document.getElementById('monthSelect');
+      if (sel) buildCalendar(2026, parseInt(sel.value));
+    }
+    setSyncStatus('synced');
+  });
+
+  // Override saveData to write to Firestore instead of localStorage
+  window.saveData = async (data) => {
+    setSyncStatus('syncing');
+    trackerData = data;
+    await setDoc(trackerRef, { days: data }, { merge: true });
+  };
 }
 </script>
 </body>
