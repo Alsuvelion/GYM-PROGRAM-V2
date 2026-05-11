@@ -299,3 +299,65 @@ if (monthSelect) {
     window.buildCalendar(2026, parseInt(monthSelect.value));
   });
 }
+
+// ── AI PLAN GENERATOR ─────────────────────────────────────────────────────────
+window.generatePlan = async () => {
+  // 1. Put your NEW API Key here
+  const API_KEY = "AIzaSyB7YNMmuhJBDIKjh9zXNgp7GHE7no0zrE0";
+
+  // 2. Gather the inputs from the form
+  const name = document.getElementById('aiName').value || 'User';
+  const weight = document.getElementById('aiWeight').value;
+  const goal = document.getElementById('aiGoal').value;
+  const level = document.getElementById('aiLevel').value;
+  const injuries = document.getElementById('aiInjuries').value;
+  const days = Array.from(document.querySelectorAll('.day-selector input:checked')).map(cb => cb.value);
+  const equipment = Array.from(document.querySelectorAll('.equip-selector input:checked')).map(cb => cb.value);
+
+  // 3. Show a loading screen
+  const step4 = document.getElementById('aiStep4');
+  step4.innerHTML = `
+    <div style="text-align: center; padding: 40px 0;">
+      <h3 style="color: #4ecb8d; margin-bottom: 10px;">Consulting Gemini...</h3>
+      <p style="color: #aaa; font-size: 14px;">Building your custom plan. This takes about 5 seconds.</p>
+    </div>
+  `;
+
+  // 4. Create the instructions for Gemini
+  const prompt = `You are an expert personal trainer. Create a workout and meal plan for this user:
+  Name: ${name}
+  Weight: ${weight}kg
+  Goal: ${goal}
+  Days available: ${days.join(", ")}
+  Equipment: ${equipment.join(", ")}
+  Level: ${level}
+  Injuries: ${injuries}
+  
+  Return ONLY pure JSON. No markdown formatting, no backticks. Use exactly this structure:
+  {
+    "gymProgram": { "Day 1": ["Exercise 1", "Exercise 2"] },
+    "mealPlan": { "breakfast": ["food 1"], "lunch": ["food 2"] }
+  }`;
+
+  // 5. Send it directly to Google via a Web Request
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+
+    const data = await response.json();
+    
+    // 6. Clean up the AI's response to get pure JSON
+    const textResponse = data.candidates[0].content.parts[0].text;
+    const cleanJson = JSON.parse(textResponse.replace(/```json/g, "").replace(/```/g, ""));
+
+    console.log("🔥 THE AI MASTERPIECE: ", cleanJson);
+    step4.innerHTML = `<h3 style="color: #4ecb8d; text-align: center;">Plan Generated! Open your browser console to see it.</h3>`;
+    
+  } catch (error) {
+    console.error("AI Error:", error);
+    step4.innerHTML = `<h3 style="color: #ff6b6b; text-align: center;">Something went wrong. Check the console.</h3>`;
+  }
+};
