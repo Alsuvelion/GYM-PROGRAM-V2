@@ -392,6 +392,160 @@
   .changelog-empty { text-align: center; padding: 30px 20px; color: #555; font-size: 13px; }
   .changelog-empty .big-emoji { font-size: 36px; margin-bottom: 8px; }
 
+  /* === SESSION CARD (CHANGELOG) === */
+  .cl-session-card {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-left: 3px solid #d4943a;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+  .cl-session-card:hover { border-color: #3a3a3a; border-left-color: #e8a54a; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+
+  .cl-session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 14px 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .cl-session-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cl-session-date { font-size: 11px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .cl-session-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+    background: #2a1e08; color: #d4943a; text-transform: uppercase;
+  }
+  .cl-edited-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+    background: #1e1a3a; color: #a89cf0; text-transform: uppercase;
+    animation: softGlow 3s ease infinite;
+  }
+  @keyframes softGlow {
+    0%, 100% { box-shadow: 0 0 0px rgba(168,156,240,0); }
+    50% { box-shadow: 0 0 8px rgba(168,156,240,0.4); }
+  }
+  .cl-session-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .cl-session-card:hover .cl-session-actions { opacity: 1; }
+  .cl-edit-btn, .cl-delete-btn, .cl-expand-btn {
+    font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 6px;
+    border: none; cursor: pointer; letter-spacing: .05em;
+    transition: all 0.2s ease;
+  }
+  .cl-edit-btn { background: #1a3a66; color: #5ba3ff; }
+  .cl-edit-btn:hover { background: #2a5a99; color: #80bfff; }
+  .cl-delete-btn { background: #3a1515; color: #ff6b6b; }
+  .cl-delete-btn:hover { background: #551f1f; color: #ff8a7a; }
+  .cl-expand-btn { background: #1e1e1e; color: #888; }
+  .cl-expand-btn:hover { background: #2a2a2a; color: #ccc; }
+
+  .cl-session-summary {
+    padding: 0 14px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #1e1e1e;
+  }
+  .cl-workout-type { font-size: 14px; font-weight: 700; }
+  .cl-ex-count {
+    font-size: 11px; padding: 3px 8px; border-radius: 20px;
+    background: #1a1a1a; color: #888; border: 1px solid #2a2a2a;
+  }
+  .cl-form-preview {
+    font-size: 11px; color: #666; font-style: italic;
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* Collapsible details section */
+  .cl-session-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0 14px;
+  }
+  .cl-session-card.expanded .cl-session-details {
+    max-height: 800px;
+    padding: 12px 14px;
+  }
+
+  .cl-form-notes-box {
+    background: #1a2a1a;
+    border: 1px solid #1a5a30;
+    border-left: 3px solid #4ecb8d;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #b0e8c8;
+    line-height: 1.6;
+  }
+  .cl-fn-label {
+    display: block;
+    font-size: 10px; font-weight: 700; color: #4ecb8d;
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 5px;
+  }
+  .cl-general-notes {
+    background: #181828;
+    border: 1px solid #2a2a4a;
+    border-left: 3px solid #5ba3ff;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #a0b8e8;
+    line-height: 1.6;
+  }
+  .cl-gn-label {
+    display: block;
+    font-size: 10px; font-weight: 700; color: #5ba3ff;
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 5px;
+  }
+  .cl-exercises-section { margin-bottom: 10px; }
+  .cl-ex-label {
+    font-size: 10px; font-weight: 700; color: #666;
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px;
+  }
+  .cl-ex-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .cl-ex-tag {
+    font-size: 11px; padding: 3px 9px; border-radius: 20px;
+    background: #1e2a1e; color: #4ecb8d; border: 1px solid #1a4a2a;
+    font-weight: 500;
+  }
+  .cl-ex-tag.cardio { background: #2a1e08; color: #d4943a; border-color: #3a2a10; }
+
+  /* Edit History */
+  .cl-edit-history {
+    border-top: 1px solid #2a2a2a;
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+  .cl-edit-history-title {
+    font-size: 10px; font-weight: 700; color: #555;
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px;
+  }
+  .cl-edit-entry {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px;
+  }
+  .cl-edit-entry:last-child { border-bottom: none; }
+  .cl-edit-time { color: #a89cf0; font-weight: 700; white-space: nowrap; min-width: 60px; }
+  .cl-edit-changes { color: #888; line-height: 1.5; }
+
+  /* Modal edit mode */
+  .note-modal-header.edit-mode { color: #5ba3ff; }
+  .note-modal-content.edit-mode { border-color: #1a3a66; }
+
 </style>
 </head>
 <body>
@@ -728,7 +882,7 @@
 <!-- ===== NOTE MODAL ===== -->
 <div id="noteModal" class="note-modal">
   <div class="note-modal-content">
-    <div class="note-modal-header">Log this day</div>
+    <div id="noteModalHeader" class="note-modal-header">Log this day</div>
     <label class="note-modal-label">Workout Type</label>
     <select id="workoutSelect" class="note-modal-select">
       <option value="">— Auto-detect from schedule</option>
@@ -759,8 +913,14 @@
 
 <!-- ===== CHANGELOG SECTION ===== -->
 <section id="changelog" class="section">
-  <h1>📋 Updates & Changes</h1>
-  <p class="subtitle">Your progress timeline</p>
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; flex-wrap:wrap; gap:8px;">
+    <h1>📋 Updates & Changes</h1>
+    <button onclick="if(confirm('Clear all changelog entries?')){changeLog=[];saveChangeLog();renderChangeLog();}"
+      style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;border:1px solid #2a2a2a;background:#1a1a1a;color:#666;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:all .2s;">
+      🗑 Clear All
+    </button>
+  </div>
+  <p class="subtitle">Your progress timeline · <span id="changelogCount">0</span> entries</p>
   <div id="changelogList" class="changelog-container"></div>
 </section>
 
@@ -943,37 +1103,67 @@ function buildCalendar(year, month) {
 
 function openModal(key) {
   modalDateKey = key;
+  editingChangelogId = null;
   const entry = trackerData[key] || {};
   document.getElementById('noteInput').value = entry.note || '';
   document.getElementById('formNotesInput').value = entry.formNotes || '';
   document.getElementById('workoutSelect').value = entry.workout || '';
+  const header = document.getElementById('noteModalHeader');
+  if (header) { header.textContent = 'Log this day'; header.classList.remove('edit-mode'); }
+  document.getElementById('noteModal').querySelector('.note-modal-content').classList.remove('edit-mode');
   document.getElementById('noteModal').classList.add('active');
   populateExerciseChecklist();
 }
 function closeModal() {
   document.getElementById('noteModal').classList.remove('active');
+  document.getElementById('noteModal').querySelector('.note-modal-content').classList.remove('edit-mode');
+  const header = document.getElementById('noteModalHeader');
+  if (header) { header.textContent = 'Log this day'; header.classList.remove('edit-mode'); }
   modalDateKey = null;
+  editingChangelogId = null;
 }
 
 document.getElementById('noteSaveBtn')?.addEventListener('click', () => {
-  if (!modalDateKey) return;
+  if (!modalDateKey && !editingChangelogId) return;
   const note = document.getElementById('noteInput').value.trim();
   const formNotes = document.getElementById('formNotesInput').value.trim();
   const workout = document.getElementById('workoutSelect').value || null;
-  
-  // Get checked exercises
+
   const checkedBoxes = document.querySelectorAll('#exerciseChecklistContainer input[type="checkbox"]:checked');
   const exercises = Array.from(checkedBoxes).map(box => box.dataset.exercise);
-  
-  trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note, formNotes, workout, exercises };
-  saveData(trackerData);
-  
-  // Log to changelog
-  const workoutText = workout ? workout : 'No workout selected';
-  const exText = exercises.length > 0 ? ` • ${exercises.length} exercise(s)` : '';
-  const noteText = formNotes ? ` • "${formNotes}"` : '';
-  addToChangeLog('session', `Logged: ${workoutText}${exText}${noteText}`);
-  
+
+  if (editingChangelogId) {
+    // ── EDIT MODE ────────────────────────────────────────────────────────────
+    const existingEntry = changeLog.find(e => e.id === editingChangelogId);
+    if (existingEntry) {
+      const oldData = existingEntry.sessionData || {};
+      const newData = { workout, exercises, formNotes, note };
+      const changes = computeDiff(oldData, newData);
+      existingEntry.sessionData = newData;
+      existingEntry.editCount = (existingEntry.editCount || 0) + 1;
+      existingEntry.editHistory = existingEntry.editHistory || [];
+      existingEntry.editHistory.push({
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date().toISOString(),
+        changes
+      });
+      // Keep trackerData in sync
+      if (modalDateKey) {
+        trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note, formNotes, workout, exercises };
+        saveData(trackerData);
+      }
+      saveChangeLog();
+      renderChangeLog();
+    }
+    editingChangelogId = null;
+  } else {
+    // ── NORMAL LOG MODE ──────────────────────────────────────────────────────
+    trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note, formNotes, workout, exercises };
+    saveData(trackerData);
+    const sessionData = { workout, exercises, formNotes, note };
+    addToChangeLog('session', sessionData, modalDateKey);
+  }
+
   const sel = document.getElementById('monthSelect');
   buildCalendar(2026, parseInt(sel.value));
   closeModal();
@@ -1002,31 +1192,123 @@ document.getElementById('workoutSelect')?.addEventListener('change', populateExe
 // ── CHANGELOG FUNCTIONS ──────────────────────────────────────────────────────
 const CHANGELOG_KEY = 'gymChangeLog';
 let changeLog = [];
+let editingChangelogId = null;
 
 function loadChangeLog() {
   try { changeLog = JSON.parse(localStorage.getItem(CHANGELOG_KEY)) || []; }
   catch { changeLog = []; }
 }
 
-function addToChangeLog(type, text) {
+function saveChangeLog() {
+  try { localStorage.setItem(CHANGELOG_KEY, JSON.stringify(changeLog)); } catch {}
+}
+
+function addToChangeLog(type, data, dateKey) {
   const entry = {
     id: Date.now(),
-    type, // 'weight', 'session', 'exercise', 'note'
-    text,
+    type,
+    dateKey: dateKey || null,
+    sessionData: type === 'session' ? data : null,
+    text: type !== 'session' ? data : null,
     timestamp: new Date().toISOString(),
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    editHistory: [],
+    editCount: 0
   };
-  changeLog.unshift(entry); // newest first
-  if (changeLog.length > 100) changeLog.pop(); // keep only 100 most recent
-  try { localStorage.setItem(CHANGELOG_KEY, JSON.stringify(changeLog)); } catch {}
+  changeLog.unshift(entry);
+  if (changeLog.length > 100) changeLog.pop();
+  saveChangeLog();
   renderChangeLog();
+}
+
+function computeDiff(oldData, newData) {
+  const changes = [];
+  const oldEx = oldData.exercises || [];
+  const newEx = newData.exercises || [];
+  const added = newEx.filter(e => !oldEx.includes(e));
+  const removed = oldEx.filter(e => !newEx.includes(e));
+  if (oldData.workout !== newData.workout) changes.push('Workout type changed');
+  if (added.length) changes.push(`Added ${added.length} exercise${added.length > 1 ? 's' : ''}: ${added.join(', ')}`);
+  if (removed.length) changes.push(`Removed ${removed.length} exercise${removed.length > 1 ? 's' : ''}: ${removed.join(', ')}`);
+  if ((oldData.formNotes || '') !== (newData.formNotes || '')) changes.push('Updated form notes');
+  if ((oldData.note || '') !== (newData.note || '')) changes.push('Updated general notes');
+  return changes.length ? changes : ['Minor edits'];
+}
+
+function renderSessionCard(entry) {
+  const sd = entry.sessionData || {};
+  const workoutMap = {
+    legs:  { emoji: '🦵', text: 'Leg Day',       color: '#3ddc84' },
+    full:  { emoji: '🔥', text: 'Full Body',      color: '#d4943a' },
+    upper: { emoji: '💪', text: 'Upper Body',     color: '#a89cf0' },
+    extra: { emoji: '⚡', text: 'Extra Session',  color: '#5ba3ff' }
+  };
+  const wt = sd.workout ? workoutMap[sd.workout] : null;
+  const exercises = sd.exercises || [];
+  const isEdited = entry.editCount > 0;
+  const CARDIO_KEYWORDS = ['bike', 'treadmill', 'stepmaster', 'cardio', 'interval', 'cool down'];
+  const isCardio = ex => CARDIO_KEYWORDS.some(k => ex.toLowerCase().includes(k));
+
+  const exerciseTags = exercises.map(ex =>
+    `<span class="cl-ex-tag${isCardio(ex) ? ' cardio' : ''}">${isCardio(ex) ? '🏃' : '✓'} ${ex}</span>`
+  ).join('');
+
+  const editHistoryHTML = entry.editHistory && entry.editHistory.length > 0
+    ? `<div class="cl-edit-history">
+        <div class="cl-edit-history-title">✏️ Edit History (${entry.editHistory.length})</div>
+        ${entry.editHistory.map(eh => `
+          <div class="cl-edit-entry">
+            <span class="cl-edit-time">${eh.time}</span>
+            <span class="cl-edit-changes">${eh.changes.join(' · ')}</span>
+          </div>
+        `).join('')}
+      </div>` : '';
+
+  const formPreview = sd.formNotes
+    ? `<span class="cl-form-preview">"${sd.formNotes.length > 45 ? sd.formNotes.slice(0,45) + '…' : sd.formNotes}"</span>`
+    : '';
+
+  return `
+    <div class="cl-session-card" data-entry-id="${entry.id}">
+      <div class="cl-session-header">
+        <div class="cl-session-meta">
+          <span class="cl-session-date">${entry.date} · ${entry.time}</span>
+          <span class="cl-session-badge">💪 SESSION${isEdited ? ' (Edited)' : ' (Logged)'}</span>
+          ${isEdited ? `<span class="cl-edited-badge">✏️ Edited ${entry.editCount}×</span>` : ''}
+        </div>
+        <div class="cl-session-actions">
+          <button class="cl-edit-btn" data-entry-id="${entry.id}">EDIT</button>
+          <button class="cl-delete-btn" data-entry-id="${entry.id}">DEL</button>
+          <button class="cl-expand-btn" data-entry-id="${entry.id}">▼ Expand</button>
+        </div>
+      </div>
+      <div class="cl-session-summary">
+        ${wt
+          ? `<span class="cl-workout-type" style="color:${wt.color}">${wt.emoji} ${wt.text}</span>`
+          : `<span class="cl-workout-type" style="color:#666">No type set</span>`}
+        <span class="cl-ex-count">${exercises.length} exercise${exercises.length !== 1 ? 's' : ''}</span>
+        ${formPreview}
+      </div>
+      <div class="cl-session-details">
+        ${sd.formNotes ? `<div class="cl-form-notes-box"><span class="cl-fn-label">⚡ Form Notes</span>${sd.formNotes}</div>` : ''}
+        ${sd.note ? `<div class="cl-general-notes"><span class="cl-gn-label">📝 General Notes</span>${sd.note}</div>` : ''}
+        ${exercises.length > 0 ? `
+          <div class="cl-exercises-section">
+            <div class="cl-ex-label">Exercises Completed (${exercises.length})</div>
+            <div class="cl-ex-tags">${exerciseTags}</div>
+          </div>` : ''}
+        ${editHistoryHTML}
+      </div>
+    </div>`;
 }
 
 function renderChangeLog() {
   const list = document.getElementById('changelogList');
   if (!list) return;
-  
+  const countEl = document.getElementById('changelogCount');
+  if (countEl) countEl.textContent = changeLog.length;
+
   if (changeLog.length === 0) {
     list.innerHTML = `
       <div class="changelog-empty">
@@ -1035,22 +1317,85 @@ function renderChangeLog() {
       </div>`;
     return;
   }
-  
+
   list.innerHTML = changeLog.map(entry => {
+    if (entry.type === 'session' && entry.sessionData) {
+      return renderSessionCard(entry);
+    }
+    // Legacy / non-session entries
     const typeLabels = {
-      weight: { emoji: '⚖️', label: 'Weight', class: 'weight' },
-      session: { emoji: '💪', label: 'Session', class: 'session' },
-      exercise: { emoji: '✓', label: 'Exercise', class: 'exercise' },
-      note: { emoji: '📝', label: 'Note', class: 'note' }
+      weight:   { emoji: '⚖️', label: 'Weight',   cls: 'weight' },
+      session:  { emoji: '💪', label: 'Session',  cls: 'session' },
+      exercise: { emoji: '✓',  label: 'Exercise', cls: 'exercise' },
+      note:     { emoji: '📝', label: 'Note',     cls: 'note' }
     };
     const info = typeLabels[entry.type] || typeLabels.note;
     return `
       <div class="changelog-entry ${entry.type}">
         <div class="changelog-time">${entry.date} · ${entry.time}</div>
-        <span class="changelog-type ${info.class}">${info.emoji} ${info.label}</span>
-        <div class="changelog-text">${entry.text}</div>
+        <span class="changelog-type ${info.cls}">${info.emoji} ${info.label}</span>
+        <div class="changelog-text">${entry.text || ''}</div>
       </div>`;
   }).join('');
+
+  // Expand / collapse
+  list.querySelectorAll('.cl-expand-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const card = btn.closest('.cl-session-card');
+      const expanded = card.classList.toggle('expanded');
+      btn.textContent = expanded ? '▲ Collapse' : '▼ Expand';
+    });
+  });
+
+  // Edit session
+  list.querySelectorAll('.cl-edit-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditModal(parseInt(btn.dataset.entryId));
+    });
+  });
+
+  // Delete session
+  list.querySelectorAll('.cl-delete-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('Delete this session log? This cannot be undone.')) return;
+      changeLog = changeLog.filter(en => en.id !== parseInt(btn.dataset.entryId));
+      saveChangeLog();
+      renderChangeLog();
+    });
+  });
+}
+
+function openEditModal(entryId) {
+  const entry = changeLog.find(e => e.id === entryId);
+  if (!entry) return;
+  editingChangelogId = entryId;
+  const sd = entry.sessionData || {};
+  // Use the dateKey stored in the entry, or fall back to today
+  modalDateKey = entry.dateKey || Object.keys(trackerData).find(k =>
+    trackerData[k] && (trackerData[k].exercises || trackerData[k].formNotes || trackerData[k].note)
+  ) || null;
+
+  // Populate modal fields from sessionData
+  document.getElementById('noteInput').value = sd.note || '';
+  document.getElementById('formNotesInput').value = sd.formNotes || '';
+  document.getElementById('workoutSelect').value = sd.workout || '';
+
+  const header = document.getElementById('noteModalHeader');
+  if (header) { header.textContent = '✏️ Edit Session'; header.classList.add('edit-mode'); }
+  document.getElementById('noteModal').classList.add('active');
+  document.getElementById('noteModal').querySelector('.note-modal-content').classList.add('edit-mode');
+
+  // Populate exercise checklist then restore checked state
+  if (sd.workout) {
+    // Temporarily override trackerData exercises so checklist repopulates correctly
+    if (modalDateKey) {
+      trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), exercises: sd.exercises || [], workout: sd.workout };
+    }
+  }
+  populateExerciseChecklist();
 }
 
 loadChangeLog();
