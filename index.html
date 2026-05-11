@@ -46,6 +46,12 @@
   .stab[data-section="tracker"]           { border-left-color: #3a2a5a; }
   .stab[data-section="tracker"]:hover     { border-left-color: #a89cf0; color: #a89cf0; }
   .stab[data-section="tracker"].active    { background: #1a1430; border-color: #352860; border-left-color: #a89cf0; color: #a89cf0; }
+
+  /* CHANGELOG — blue */
+  .stab[data-section="changelog"]           { border-left-color: #2a3a5a; }
+  .stab[data-section="changelog"]:hover     { border-left-color: #5ba3ff; color: #5ba3ff; }
+  .stab[data-section="changelog"].active    { background: #0d1a3a; border-color: #1a3a66; border-left-color: #5ba3ff; color: #5ba3ff; }
+  
   .section { display: none; }
   .section.active { display: block; }
 
@@ -222,22 +228,100 @@
   .cal-day:hover { transform: translateY(-2px); border-color: #555; background: #1a1a1a; }
   .cal-date { font-size: 13px; font-weight: 700; color: #888; margin-bottom: 8px; min-height: 18px; }
   .cal-status { font-size: 18px; transition: all 0.3s ease; height: 24px; display: flex; align-items: center; justify-content: center; }
-  .cal-note-btn { font-size: 10px; color: #555; cursor: pointer; transition: all 0.2s; margin-top: 4px; opacity: 0; position: absolute; top: 2px; right: 2px; }
-  .cal-day:hover .cal-note-btn { opacity: 0.6; }
-  .cal-note-btn:hover { opacity: 1; color: #f0f0f0; }
+  .cal-note-btn { 
+    font-size: 11px; 
+    color: #555; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+    margin-top: 4px; 
+    opacity: 0; 
+    position: absolute; 
+    top: 2px; 
+    right: 2px;
+    background: rgba(61, 220, 132, 0.15);
+    padding: 3px 5px;
+    border-radius: 4px;
+    border: 1px solid rgba(61, 220, 132, 0.3);
+  }
+  .cal-day:hover .cal-note-btn { opacity: 0.8; }
+  .cal-note-btn:hover { 
+    opacity: 1; 
+    color: #4ecb8d;
+    background: rgba(61, 220, 132, 0.25);
+    border-color: rgba(61, 220, 132, 0.5);
+  }
   
-  /* Status colors */
-  .cal-day.went { border-color: #1a6645; background: #0d3326; }
-  .cal-day.went .cal-date { color: #4ecb8d; }
-  .cal-day.went .cal-status { color: #4ecb8d; }
+  /* Workout badges */
+  .cal-badge { font-size: 14px; margin-top: 2px; display: inline-flex; align-items: center; gap: 3px; }
+  .cal-badge-legs { color: #3ddc84; }
+  .cal-badge-full { color: #d4943a; }
+  .cal-badge-upper { color: #a89cf0; }
+  .cal-badge-extra { color: #5ba3ff; }
+  .cal-badge-text { font-size: 10px; font-weight: 600; }
   
-  .cal-day.rest { border-color: #1a3a66; background: #0d2a4d; }
-  .cal-day.rest .cal-date { color: #5ba8d6; }
-  .cal-day.rest .cal-status { color: #5ba8d6; }
+  /* NOTE INDICATOR BADGE */
+  .cal-note-indicator { 
+    position: absolute; 
+    top: 4px; 
+    right: 4px; 
+    width: 18px; 
+    height: 18px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 10px; 
+    font-weight: 700;
+    z-index: 10;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
+  .cal-day.went .cal-note-indicator { background: #4ecb8d; color: #0f0f0f; }
+  .cal-day.rest .cal-note-indicator { background: #5ba3ff; color: #0f0f0f; }
+  .cal-day.skipped .cal-note-indicator { background: #ff8a7a; color: #0f0f0f; }
   
-  .cal-day.skipped { border-color: #664d4d; background: #4d1a1a; }
-  .cal-day.skipped .cal-date { color: #ff6b6b; }
-  .cal-day.skipped .cal-status { color: #ff6b6b; }
+  /* Status colors with enhanced styling */
+  .cal-day.went { 
+    border-color: #3ddc84; 
+    background: linear-gradient(135deg, #0d3326 0%, #0a2620 100%);
+    border-width: 2px;
+    box-shadow: 0 0 12px rgba(61, 220, 132, 0.2);
+    transition: all 0.3s ease;
+  }
+  .cal-day.went:hover { 
+    box-shadow: 0 0 20px rgba(61, 220, 132, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+  }
+  .cal-day.went .cal-date { color: #4ecb8d; font-weight: 700; }
+  .cal-day.went .cal-status { color: #4ecb8d; font-weight: 700; }
+  
+  .cal-day.rest { 
+    border-color: #5ba8d6; 
+    background: linear-gradient(135deg, #0d2a4d 0%, #081f38 100%);
+    border-width: 2px;
+    box-shadow: 0 0 12px rgba(91, 168, 214, 0.2);
+    transition: all 0.3s ease;
+  }
+  .cal-day.rest:hover { 
+    box-shadow: 0 0 20px rgba(91, 168, 214, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+  }
+  .cal-day.rest .cal-date { color: #5ba8d6; font-weight: 700; }
+  .cal-day.rest .cal-status { color: #5ba8d6; font-weight: 700; }
+  
+  .cal-day.skipped { 
+    border-color: #ff6b6b; 
+    background: linear-gradient(135deg, #4d1a1a 0%, #3d0f0f 100%);
+    border-width: 2px;
+    box-shadow: 0 0 12px rgba(255, 107, 107, 0.2);
+    transition: all 0.3s ease;
+  }
+  .cal-day.skipped:hover { 
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+  }
+  .cal-day.skipped .cal-date { color: #ff6b6b; font-weight: 700; }
+  .cal-day.skipped .cal-status { color: #ff6b6b; font-weight: 700; }
   
   /* Note modal */
   .note-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 1000; align-items: center; justify-content: center; }
@@ -248,12 +332,66 @@
   .note-modal-input:focus { outline: none; border-color: #555; }
   .note-modal-buttons { display: flex; gap: 8px; }
   .note-modal-btn { padding: 8px 14px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-save { background: #4ecb8d; color: #0d3326; }
+  .btn-save { background: #4ecb8d; color: #0d3326; flex: 1; text-align: center; }
   .btn-save:hover { background: #6dd9a0; }
   .btn-cancel { background: #2a2a2a; color: #f0f0f0; }
   .btn-cancel:hover { background: #333; }
-  .btn-delete { background: #663333; color: #ff6b6b; flex: 1; text-align: center; }
+  .btn-delete { background: #663333; color: #ff6b6b; }
   .btn-delete:hover { background: #804040; }
+  
+  /* Modal labels and select */
+  .note-modal-label { display: block; font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .06em; margin-top: 12px; margin-bottom: 6px; }
+  .note-modal-select { width: 100%; background: #151515; border: 1px solid #2a2a2a; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: #f0f0f0; font-family: inherit; margin-bottom: 12px; }
+  .note-modal-select:focus { outline: none; border-color: #4ecb8d; }
+  
+  /* Exercise Checklist */
+  .exercise-list { background: #151515; border: 1px solid #2a2a2a; border-radius: 6px; padding: 10px; margin-bottom: 12px; max-height: 180px; overflow-y: auto; }
+  .exercise-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; }
+  .exercise-item input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; accent-color: #4ecb8d; }
+  .exercise-item label { cursor: pointer; flex: 1; color: #ccc; }
+  .exercise-item:hover label { color: #f0f0f0; }
+  
+  /* Session Log View */
+  .session-log { margin-top: 16px; }
+  .session-card { background: #1a1a1a; border: 1px solid #262626; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+  .session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .session-date { font-size: 13px; font-weight: 600; color: #4ecb8d; }
+  .session-type { font-size: 12px; color: #888; }
+  .session-exercises { font-size: 12px; color: #aaa; margin: 6px 0; }
+  .session-notes { font-size: 12px; color: #999; font-style: italic; margin: 6px 0; }
+  
+  /* Modal scroll */
+  .note-modal-content { max-height: 90vh; overflow-y: auto; }
+
+  /* === CHANGELOG CSS === */
+  .changelog-container { margin-top: 16px; }
+  .changelog-entry {
+    background: #151515;
+    border-left: 3px solid #4ecb8d;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+  }
+  .changelog-entry:hover { background: #1a1a1a; transform: translateX(4px); }
+  .changelog-entry.weight-change { border-left-color: #4ecb8d; }
+  .changelog-entry.session-log { border-left-color: #d4943a; }
+  .changelog-entry.exercise-check { border-left-color: #a89cf0; }
+  .changelog-entry.note-added { border-left-color: #5ba3ff; }
+  
+  .changelog-time { font-size: 11px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .changelog-type { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-bottom: 6px; text-transform: uppercase; }
+  .changelog-type.weight { background: #0d3326; color: #4ecb8d; }
+  .changelog-type.session { background: #2a1e08; color: #d4943a; }
+  .changelog-type.exercise { background: #1e1a3a; color: #a89cf0; }
+  .changelog-type.note { background: #0d1e3a; color: #5ba3ff; }
+  
+  .changelog-text { font-size: 12px; color: #ccc; line-height: 1.5; margin-bottom: 4px; }
+  .changelog-emoji { font-size: 14px; margin-right: 6px; }
+  
+  .changelog-empty { text-align: center; padding: 30px 20px; color: #555; font-size: 13px; }
+  .changelog-empty .big-emoji { font-size: 36px; margin-bottom: 8px; }
+
 </style>
 </head>
 <body>
@@ -266,6 +404,7 @@
     <button class="stab active" data-section="gym">🏋️ ROUTINE</button>
     <button class="stab" data-section="meal">🍽️ MEAL PLAN</button>
     <button class="stab" data-section="tracker">📅 TRACKER</button>
+    <button class="stab" data-section="changelog">📋 CHANGELOG</button>
   </div>
 </header>
 
@@ -565,22 +704,67 @@
     </div>
     <div style="color: #555; margin-left: auto;">Click on any date • 📝 = add note</div>
   </div>
+
+  <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; font-size: 11px; padding: 10px 12px; background: #151515; border-radius: 8px; border: 1px solid #262626;">
+    <div style="display: flex; align-items: center; gap: 5px; color: #666;">
+      <span style="font-size: 14px; color: #3ddc84;">🦵</span>
+      <span>Leg Day</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px; color: #666;">
+      <span style="font-size: 14px; color: #d4943a;">🔥</span>
+      <span>Full Body</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px; color: #666;">
+      <span style="font-size: 14px; color: #a89cf0;">💪</span>
+      <span>Upper Body</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px; color: #666;">
+      <span style="font-size: 14px; color: #5ba3ff;">⚡</span>
+      <span>Extra Session</span>
+    </div>
+  </div>
 </section><!-- end tracker section -->
 
 <!-- ===== NOTE MODAL ===== -->
 <div id="noteModal" class="note-modal">
   <div class="note-modal-content">
-    <div class="note-modal-header">Add a note for this day</div>
-    <textarea id="noteInput" class="note-modal-input" placeholder="What's on your mind? (optional)"></textarea>
+    <div class="note-modal-header">Log this day</div>
+    <label class="note-modal-label">Workout Type</label>
+    <select id="workoutSelect" class="note-modal-select">
+      <option value="">— Auto-detect from schedule</option>
+      <option value="legs">🦵 Leg Day</option>
+      <option value="full">🔥 Full Body</option>
+      <option value="upper">💪 Upper Body</option>
+      <option value="extra">⚡ Extra Session</option>
+    </select>
+    
+    <label class="note-modal-label">Exercises Completed</label>
+    <div id="exerciseChecklistContainer" class="exercise-list"></div>
+    
+    <label class="note-modal-label">Form Notes (optional)</label>
+    <textarea id="formNotesInput" class="note-modal-input" placeholder="e.g. 'felt strong today', 'need to work on form', 'increased weight on chest press'..."></textarea>
+    
+    <label class="note-modal-label">General Notes (optional)</label>
+    <textarea id="noteInput" class="note-modal-input" placeholder="What's on your mind?"></textarea>
+    
     <div class="note-modal-buttons">
-      <button id="noteSaveBtn" class="note-modal-btn btn-save">Save</button>
-      <button id="noteDeleteBtn" class="note-modal-btn btn-delete">Delete note</button>
       <button id="noteCancelBtn" class="note-modal-btn btn-cancel">Cancel</button>
+      <button id="noteSaveBtn" class="note-modal-btn btn-save">Save</button>
+      <button id="noteDeleteBtn" class="note-modal-btn btn-delete">Delete</button>
     </div>
   </div>
 </div>
 
-</section></main>
+</section>
+
+<!-- ===== CHANGELOG SECTION ===== -->
+<section id="changelog" class="section">
+  <h1>📋 Updates & Changes</h1>
+  <p class="subtitle">Your progress timeline</p>
+  <div id="changelogList" class="changelog-container"></div>
+</section>
+
+</main>
 
 <script>
 // ── SECTION TOGGLE (ROUTINE / MEAL PLAN / TRACKER) ──────────────────────────
@@ -608,6 +792,29 @@ document.querySelectorAll('.tab').forEach(btn => {
 // ── TRACKER ──────────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'gymTracker_v1';
 
+// Exercise lists for each workout type
+const EXERCISES_BY_WORKOUT = {
+  legs: [
+    'Hack Squat', 'Bike (interval)', 'Seated Leg Press', 'Treadmill (interval)',
+    'Leg Extension', 'Stepmaster (interval)', 'Prone Leg Curl', 'Abductor/Adductor',
+    'Goblet Squat', 'Romanian Deadlift', 'Reverse Lunge', 'Ab Machine'
+  ],
+  full: [
+    'Chest Press', 'Bike (interval)', 'Shoulder Press', 'Stepmaster (interval)',
+    'DB Lateral Raise', 'Treadmill (interval)', 'Pulldown', 'Pulley Row',
+    'DB Bent Over Row', 'Seated Leg Press', 'Hack Squat', 'DB Goblet Squat',
+    'Torso Rotation', 'Ab Machine'
+  ],
+  upper: [
+    'Chest Press', 'Bike (interval)', 'Pulldown', 'Treadmill (interval)',
+    'Pec Fly/Rear Deltoid', 'Stepmaster (interval)', 'Pulley Row',
+    'Split Shoulder Press', 'High Pull Low Rowing', 'DB Lateral Raise',
+    'Assist Dip Chin', 'Treadmill (cool down)', 'DB Bicep Curl', 'DB Overhead Tricep Ext.',
+    'Torso Rotation'
+  ],
+  extra: ['Cardio', 'Stretching', 'Core Work', 'Light Weights']
+};
+
 function loadData() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
   catch { return {}; }
@@ -621,6 +828,42 @@ const STATUS_ICON  = { went: '✓', rest: '●', skipped: '✗' };
 
 let trackerData = loadData();
 let modalDateKey = null;
+
+// Determine workout type by day of week
+function getWorkoutType(date) {
+  const dayOfWeek = date.getDay(); // 0 = Sun, 2 = Tue, 4 = Thu, 6 = Sat
+  if (dayOfWeek === 2) return { type: 'legs', emoji: '🦵', color: 'cal-badge-legs' };
+  if (dayOfWeek === 4) return { type: 'full', emoji: '🔥', color: 'cal-badge-full' };
+  if (dayOfWeek === 6) return { type: 'upper', emoji: '💪', color: 'cal-badge-upper' };
+  return null;
+}
+
+// Populate exercise checklist in modal
+function populateExerciseChecklist() {
+  const workoutType = document.getElementById('workoutSelect').value;
+  const container = document.getElementById('exerciseChecklistContainer');
+  container.innerHTML = '';
+  
+  if (!workoutType) {
+    container.innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">Select a workout type first</div>';
+    return;
+  }
+  
+  const exercises = EXERCISES_BY_WORKOUT[workoutType] || [];
+  const entry = trackerData[modalDateKey] || {};
+  const checkedExercises = entry.exercises || [];
+  
+  exercises.forEach(exercise => {
+    const isChecked = checkedExercises.includes(exercise);
+    const item = document.createElement('div');
+    item.className = 'exercise-item';
+    item.innerHTML = `
+      <input type="checkbox" id="ex-${exercise}" ${isChecked ? 'checked' : ''} data-exercise="${exercise}">
+      <label for="ex-${exercise}">${exercise}</label>
+    `;
+    container.appendChild(item);
+  });
+}
 
 function buildCalendar(year, month) {
   const grid = document.getElementById('calendarGrid');
@@ -644,6 +887,7 @@ function buildCalendar(year, month) {
     const entry = trackerData[key] || {};
     const status = entry.status || null;
     const note   = entry.note   || '';
+    const loggedWorkout = entry.workout || null;
 
     const cell = document.createElement('div');
     cell.className = 'cal-day' + (status ? ' ' + status : '');
@@ -651,10 +895,34 @@ function buildCalendar(year, month) {
     const isToday = today.getFullYear() === year && today.getMonth()+1 === month && today.getDate() === d;
     if (isToday) cell.style.outline = '2px solid #4ecb8d';
 
+    // Determine badge - priority: custom logged workout, then inferred from day of week if status is "went"
+    let badgeHTML = '';
+    if (status === 'went') {
+      let workoutInfo = null;
+      if (loggedWorkout) {
+        // Use custom logged workout
+        const workoutMap = { legs: { emoji: '🦵', text: 'Legs', color: 'cal-badge-legs' }, full: { emoji: '🔥', text: 'Full Body', color: 'cal-badge-full' }, upper: { emoji: '💪', text: 'Upper', color: 'cal-badge-upper' }, extra: { emoji: '⚡', text: 'Extra', color: 'cal-badge-extra' } };
+        workoutInfo = workoutMap[loggedWorkout];
+      } else {
+        // Infer from day of week
+        const dateObj = new Date(year, month - 1, d);
+        const inferred = getWorkoutType(dateObj);
+        if (inferred) {
+          const textMap = { legs: 'Legs', full: 'Full Body', upper: 'Upper' };
+          workoutInfo = { emoji: inferred.emoji, text: textMap[inferred.type], color: inferred.color };
+        }
+      }
+      if (workoutInfo) {
+        badgeHTML = `<div class="cal-badge ${workoutInfo.color}"><span>${workoutInfo.emoji}</span><span class="cal-badge-text">${workoutInfo.text}</span></div>`;
+      }
+    }
+
     cell.innerHTML = `
       <div class="cal-date">${d}</div>
       <div class="cal-status">${status ? STATUS_ICON[status] : ''}</div>
-      ${note ? '<div class="cal-note-btn" title="Has note">📝</div>' : '<div class="cal-note-btn">📝</div>'}
+      ${badgeHTML}
+      ${(entry.exercises && entry.exercises.length > 0) || entry.formNotes || note ? `<div class="cal-note-indicator" title="Has notes/exercises">📝</div>` : ''}
+      ${(entry.exercises && entry.exercises.length > 0) || entry.formNotes || note ? '' : '<div class="cal-note-btn">📝</div>'}
     `;
 
     // tap/click: cycle status
@@ -677,7 +945,10 @@ function openModal(key) {
   modalDateKey = key;
   const entry = trackerData[key] || {};
   document.getElementById('noteInput').value = entry.note || '';
+  document.getElementById('formNotesInput').value = entry.formNotes || '';
+  document.getElementById('workoutSelect').value = entry.workout || '';
   document.getElementById('noteModal').classList.add('active');
+  populateExerciseChecklist();
 }
 function closeModal() {
   document.getElementById('noteModal').classList.remove('active');
@@ -687,15 +958,34 @@ function closeModal() {
 document.getElementById('noteSaveBtn')?.addEventListener('click', () => {
   if (!modalDateKey) return;
   const note = document.getElementById('noteInput').value.trim();
-  trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note };
+  const formNotes = document.getElementById('formNotesInput').value.trim();
+  const workout = document.getElementById('workoutSelect').value || null;
+  
+  // Get checked exercises
+  const checkedBoxes = document.querySelectorAll('#exerciseChecklistContainer input[type="checkbox"]:checked');
+  const exercises = Array.from(checkedBoxes).map(box => box.dataset.exercise);
+  
+  trackerData[modalDateKey] = { ...(trackerData[modalDateKey] || {}), note, formNotes, workout, exercises };
   saveData(trackerData);
+  
+  // Log to changelog
+  const workoutText = workout ? workout : 'No workout selected';
+  const exText = exercises.length > 0 ? ` • ${exercises.length} exercise(s)` : '';
+  const noteText = formNotes ? ` • "${formNotes}"` : '';
+  addToChangeLog('session', `Logged: ${workoutText}${exText}${noteText}`);
+  
   const sel = document.getElementById('monthSelect');
   buildCalendar(2026, parseInt(sel.value));
   closeModal();
 });
 document.getElementById('noteDeleteBtn')?.addEventListener('click', () => {
   if (!modalDateKey) return;
-  if (trackerData[modalDateKey]) delete trackerData[modalDateKey].note;
+  if (trackerData[modalDateKey]) {
+    delete trackerData[modalDateKey].note;
+    delete trackerData[modalDateKey].workout;
+    delete trackerData[modalDateKey].exercises;
+    delete trackerData[modalDateKey].formNotes;
+  }
   saveData(trackerData);
   const sel = document.getElementById('monthSelect');
   buildCalendar(2026, parseInt(sel.value));
@@ -705,6 +995,65 @@ document.getElementById('noteCancelBtn')?.addEventListener('click', closeModal);
 document.getElementById('noteModal')?.addEventListener('click', e => {
   if (e.target === document.getElementById('noteModal')) closeModal();
 });
+
+// Update exercise checklist when workout type changes
+document.getElementById('workoutSelect')?.addEventListener('change', populateExerciseChecklist);
+
+// ── CHANGELOG FUNCTIONS ──────────────────────────────────────────────────────
+const CHANGELOG_KEY = 'gymChangeLog';
+let changeLog = [];
+
+function loadChangeLog() {
+  try { changeLog = JSON.parse(localStorage.getItem(CHANGELOG_KEY)) || []; }
+  catch { changeLog = []; }
+}
+
+function addToChangeLog(type, text) {
+  const entry = {
+    id: Date.now(),
+    type, // 'weight', 'session', 'exercise', 'note'
+    text,
+    timestamp: new Date().toISOString(),
+    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  };
+  changeLog.unshift(entry); // newest first
+  if (changeLog.length > 100) changeLog.pop(); // keep only 100 most recent
+  try { localStorage.setItem(CHANGELOG_KEY, JSON.stringify(changeLog)); } catch {}
+  renderChangeLog();
+}
+
+function renderChangeLog() {
+  const list = document.getElementById('changelogList');
+  if (!list) return;
+  
+  if (changeLog.length === 0) {
+    list.innerHTML = `
+      <div class="changelog-empty">
+        <div class="big-emoji">📝</div>
+        No updates yet. Start logging sessions and making changes!
+      </div>`;
+    return;
+  }
+  
+  list.innerHTML = changeLog.map(entry => {
+    const typeLabels = {
+      weight: { emoji: '⚖️', label: 'Weight', class: 'weight' },
+      session: { emoji: '💪', label: 'Session', class: 'session' },
+      exercise: { emoji: '✓', label: 'Exercise', class: 'exercise' },
+      note: { emoji: '📝', label: 'Note', class: 'note' }
+    };
+    const info = typeLabels[entry.type] || typeLabels.note;
+    return `
+      <div class="changelog-entry ${entry.type}">
+        <div class="changelog-time">${entry.date} · ${entry.time}</div>
+        <span class="changelog-type ${info.class}">${info.emoji} ${info.label}</span>
+        <div class="changelog-text">${entry.text}</div>
+      </div>`;
+  }).join('');
+}
+
+loadChangeLog();
 
 // Month selector
 const monthSelect = document.getElementById('monthSelect');
